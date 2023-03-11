@@ -4,15 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import Entities.BookEntity;
+import Entities.Bookentity;
 import Repositories.BookEntityRepository;
-import Requests.SearchBook;
 
 @RestController
 @RequestMapping("/api")
@@ -48,8 +48,17 @@ public class MainController {
 	
 	@PostMapping("/b/addbook")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> SaveBook(@RequestBody BookEntity bookEntity) {
+	public ResponseEntity<?> SaveBook(@RequestBody Bookentity bookEntity, BindingResult bindingResult) {
 		try {
+			
+	        if (bindingResult.hasErrors()) {
+	        	return ResponseEntity.badRequest().body("Error: Invalid Book form data");
+	        }
+	        
+	        if (bookEntity == null) {
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	        }
+	        
 			bookEntityRepository.save(bookEntity);
 			
 			return new ResponseEntity<>("Book created successfully!", HttpStatus.OK);

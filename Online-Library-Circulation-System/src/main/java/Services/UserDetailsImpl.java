@@ -9,15 +9,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import Entities.UserEntity;
+import Entities.Userentity;
 
 public class UserDetailsImpl implements UserDetails{
 
-    private String email;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String email;
     private String password;
     private List<GrantedAuthority> authorities;
 
-    public UserDetailsImpl(UserEntity userEntity) {
+    public UserDetailsImpl(Userentity userEntity) {
     	email=userEntity.getEmail();
         password=userEntity.getPassword();
         authorities= Arrays.stream(userEntity.getRoles().split(","))

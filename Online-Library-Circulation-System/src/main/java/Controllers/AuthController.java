@@ -6,15 +6,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import Entities.UserEntity;
+import Entities.Userentity;
+import Reponses.JwtResponse;
 import Reponses.MessageResponse;
+import Repositories.UserEntityFindByEmail;
 import Repositories.UserEntityRepository;
 import Requests.SignInRequest;
 import Services.JwtService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,6 +33,8 @@ public class AuthController {
     
     @Autowired
     private UserEntityRepository userEntityRepository;
+    @Autowired
+    private UserEntityFindByEmail userEntityFindByEmail;
     
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -34,21 +44,45 @@ public class AuthController {
     
     
 	@PostMapping("/signin")
-	public ResponseEntity<?> create(@RequestBody SignInRequest signInRequest) {
+	public ResponseEntity<?> SignIn(@Valid @RequestBody SignInRequest signInRequest, BindingResult bindingResult) {
 		try {
+			try {
+				
+	        if (bindingResult.hasErrors()) {
+	            return ResponseEntity.badRequest().body("Error: Invalid signin form data");
+	        }
+	        
 	        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword()));
 	        if (authentication.isAuthenticated()) {
-	        	return new ResponseEntity<>(jwtService.generateToken(signInRequest.getEmail()), HttpStatus.OK);
+	        	
+		        
+	        	String jwt = jwtService.generateToken(signInRequest.getEmail());
+	        	
+	        	final Userentity user = userEntityFindByEmail.findByEmail(signInRequest.getEmail());
+	        		       	        	
+	        	return ResponseEntity.ok(new JwtResponse(jwt,
+	        			user.getId(),
+	        			user.getStudentID(),
+	        			user.getFirstname(),
+	        			user.getLastname(),
+	        			user.getDepartment(),
+	        			user.getCourse(),
+	        			user.getEmail(),
+	        			user.getRoles()));
+	        	
 	        } else {
-	            throw new UsernameNotFoundException("invalid user request !");
-	        }			
+	            throw new UsernameNotFoundException("Error: Invalid user request !");
+	        }	
+			}catch (AuthenticationException e) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Invalid username or password");
+			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping("/signup")
-	public ResponseEntity<?> create(@RequestBody UserEntity userEntity) {
+	public ResponseEntity<?> SignUp(@Valid @RequestBody Userentity userEntity, BindingResult bindingResult) {
 		try {
 		    if (userEntityRepository.existsByEmail(userEntity.getEmail())) {
 		        return ResponseEntity
@@ -62,6 +96,10 @@ public class AuthController {
 		            .body(new MessageResponse("Error: Student_ID is already taken!"));
 		      }	
 		    
+	        if (bindingResult.hasErrors()) {
+	            return ResponseEntity.badRequest().body("Error: Invalid signup form data");
+	        }
+	        
 	    	userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
 	    	userEntityRepository.save(userEntity);
 	    	

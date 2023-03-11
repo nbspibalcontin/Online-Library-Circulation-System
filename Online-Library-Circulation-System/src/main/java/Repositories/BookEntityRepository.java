@@ -1,19 +1,25 @@
 package Repositories;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import Entities.BookEntity;
+import Entities.Bookentity;
 
-public interface BookEntityRepository extends JpaRepository<BookEntity, Long>{
+public interface BookEntityRepository extends JpaRepository<Bookentity, Long>{
 
-	List<BookEntity> findByTitle(String keyword);
-
-	List<BookEntity> findByAuthor(String keyword);
+    @Query("SELECT b FROM Bookentity b WHERE b.title LIKE %:searchString%")
+    List<Bookentity> searchBytitle(@Param("searchString") String keyword);
+    
+    @Query("SELECT b FROM Bookentity b WHERE b.author LIKE %:searchString%")
+    List<Bookentity> searchByauthor(@Param("searchString") String keyword);
 	
-	List<BookEntity> findBySubject(String keyword);
+    @Query("SELECT b FROM Bookentity b WHERE b.subject LIKE %:searchString%")
+    List<Bookentity> searchBysubject(@Param("searchString") String keyword);
 	
-	List<BookEntity> findByDatepublish(String keyword);
+    @Query("SELECT b FROM Bookentity b WHERE b.datepublish LIKE %:searchString%")
+    List<Bookentity> searchBydatepublish(@Param("searchString") String keyword);
+    
 }

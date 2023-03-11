@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import Entities.UserEntity;
+import Entities.Userentity;
 import Repositories.UserEntityRepository;
 
 @Component
@@ -18,9 +18,9 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<UserEntity> userInfo = repository.findByEmail(email);
+        Optional<Userentity> userInfo = repository.findByEmail(email);
         return userInfo.map(UserDetailsImpl::new)
-                .orElseThrow(() -> new UsernameNotFoundException("email not found " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("Email not found " + email));
 
     }
 }
