@@ -11,6 +11,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "Book_Entity")
 public class Bookentity {
 	
 	@Id

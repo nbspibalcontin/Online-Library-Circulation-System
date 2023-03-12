@@ -12,7 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Entities.Bookentity;
+import Entities.Reserveentity;
+import Reponses.MessageResponse;
 import Repositories.BookEntityRepository;
+import Repositories.ReserveEntityRepository;
+import Repositories.UserEntityRepository;
+import Requests.ReserveRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api")
@@ -20,6 +26,12 @@ public class MainController {
 	
 	@Autowired
 	private BookEntityRepository bookEntityRepository;
+	
+	@Autowired
+	private ReserveEntityRepository reserveEntityRepository;
+	
+    @Autowired
+    private UserEntityRepository userEntityRepository;
 
 //	@PostMapping("/url")
 //	public ResponseEntity<?> create(@RequestBody Dto dto) {
@@ -48,7 +60,7 @@ public class MainController {
 	
 	@PostMapping("/b/addbook")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> SaveBook(@RequestBody Bookentity bookEntity, BindingResult bindingResult) {
+	public ResponseEntity<?> SaveBook(@Valid @RequestBody Bookentity bookEntity, BindingResult bindingResult) {
 		try {
 			
 	        if (bindingResult.hasErrors()) {
@@ -73,8 +85,39 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> Userpage() {
 		try {
-			//TODO Implement Your Logic To Save Data And Return Result Through ResponseEntity
 			return new ResponseEntity<>("Welcome to User page", HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	//-----RESERVE BOOK----//
+	
+	@PostMapping("/b/reserve")
+	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest, BindingResult bindingResult) {
+		try {
+	        if (bindingResult.hasErrors()) {
+	        	return ResponseEntity.badRequest().body("Error: Invalid Reserve form data");
+	        }
+	        
+		    if (userEntityRepository.existsByEmail(reserveRequest.getEmail())) {
+		        Reserveentity reserveentity = new Reserveentity();
+		        reserveentity.setBooktitle(reserveRequest.getBooktitle());
+		        reserveentity.setCourse(reserveRequest.getCourse());
+		        reserveentity.setDepartment(reserveRequest.getDepartment());
+		        reserveentity.setEmail(reserveRequest.getEmail());
+		        reserveentity.setFirstname(reserveRequest.getFirstname());
+		        reserveentity.setLastname(reserveRequest.getLastname());
+		        reserveentity.setStudentID(reserveRequest.getStudentID());
+		        reserveentity.setStatus("pending");	      	        
+		        
+		        reserveEntityRepository.save(reserveentity);
+		        
+				return new ResponseEntity<>("Book reservation successfully!", HttpStatus.OK);
+	       }else {
+	    	   return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	       }
+			
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

@@ -33,6 +33,7 @@ public class AuthController {
     
     @Autowired
     private UserEntityRepository userEntityRepository;
+    
     @Autowired
     private UserEntityFindByEmail userEntityFindByEmail;
     
