@@ -94,10 +94,24 @@ public class MainController {
 	//-----RESERVE BOOK----//
 	
 	@PostMapping("/b/reserve")
-	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest, BindingResult bindingResult) {
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest,Bookentity bookentity, BindingResult bindingResult) {
 		try {
+			
+			Bookentity book = bookEntityRepository.findByTitle(reserveRequest.getBooktitle());
+			
+	        if (book.getQuantity() == 0) {
+	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Currently, the book is not available."));
+	        }
 	        if (bindingResult.hasErrors()) {
 	        	return ResponseEntity.badRequest().body("Error: Invalid Reserve form data");
+	        }
+	        
+	        // Check if the book is already reserved by the same student
+	        Reserveentity existingReservation = reserveEntityRepository.findByBooktitleAndStudentID(reserveRequest.getBooktitle(), reserveRequest.getStudentID());
+	        if (existingReservation != null) {
+	            // Book is already reserved by the same student, return a 409 Conflict response
+	            return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("You already reserved this book"));
 	        }
 	        
 		    if (userEntityRepository.existsByEmail(reserveRequest.getEmail())) {
@@ -109,7 +123,7 @@ public class MainController {
 		        reserveentity.setFirstname(reserveRequest.getFirstname());
 		        reserveentity.setLastname(reserveRequest.getLastname());
 		        reserveentity.setStudentID(reserveRequest.getStudentID());
-		        reserveentity.setStatus("pending");	      	        
+		        reserveentity.setStatus("Pending");	      	        
 		        
 		        reserveEntityRepository.save(reserveentity);
 		        

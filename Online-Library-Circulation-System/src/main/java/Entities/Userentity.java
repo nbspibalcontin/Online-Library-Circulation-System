@@ -13,6 +13,9 @@ public class Userentity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    
+    @NotBlank
+    @Size(max = 20)
     private String studentID;
     
     @NotBlank

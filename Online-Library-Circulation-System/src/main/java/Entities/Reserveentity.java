@@ -1,9 +1,12 @@
 package Entities;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,7 +27,7 @@ public class Reserveentity {
 	
     @NotBlank
     @Size(max = 30)
-	private String StudentID;
+	private String studentID;
 	
     @NotBlank
     @Size(max = 30)
@@ -52,4 +55,5 @@ public class Reserveentity {
     @NotBlank
     @Size(max = 30)
 	private String booktitle;
+    
 }

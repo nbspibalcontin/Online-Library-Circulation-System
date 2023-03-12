@@ -22,4 +22,7 @@ public interface BookEntityRepository extends JpaRepository<Bookentity, Long>{
     @Query("SELECT b FROM Bookentity b WHERE b.datepublish LIKE %:searchString%")
     List<Bookentity> searchBydatepublish(@Param("searchString") String keyword);
     
+    Bookentity findByTitle(String Booktitle);
+    
+    
 }
