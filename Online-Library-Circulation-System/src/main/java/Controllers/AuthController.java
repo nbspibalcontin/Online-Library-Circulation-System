@@ -50,7 +50,7 @@ public class AuthController {
 			try {
 				
 	        if (bindingResult.hasErrors()) {
-	            return ResponseEntity.badRequest().body("Error: Invalid signin form data");
+	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Invalid Reserve form data"));
 	        }
 	        
 	        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword()));
@@ -75,7 +75,7 @@ public class AuthController {
 	            throw new UsernameNotFoundException("Error: Invalid user request !");
 	        }	
 			}catch (AuthenticationException e) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: Invalid username or password");
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: Invalid username or password"));
 			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -97,10 +97,6 @@ public class AuthController {
 		            .body(new MessageResponse("Error: Student_ID is already taken!"));
 		      }	
 		    
-	        if (bindingResult.hasErrors()) {
-	            return ResponseEntity.badRequest().body("Error: Invalid signup form data");
-	        }
-	        
 	    	userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
 	    	userEntityRepository.save(userEntity);
 	    	

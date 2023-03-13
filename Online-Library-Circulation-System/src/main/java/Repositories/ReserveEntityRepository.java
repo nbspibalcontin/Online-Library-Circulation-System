@@ -7,5 +7,9 @@ import Entities.Reserveentity;
 
 public interface ReserveEntityRepository extends JpaRepository<Reserveentity, Long>{
 
-	Reserveentity findByBooktitleAndStudentID(String booktitle, String StudentID);
+	Reserveentity findByBookIdAndStudentID(Long BookId, String StudentID);
+	
+	Reserveentity findByid(Long id);
+
+	Reserveentity deleteByStudentID(String StudentID);
 }

@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SearchBook {
 	
-	@NotBlank
+	@NotBlank(message = "Filter should be valid")
 	private String filter;
 	
-	@NotBlank
+	@NotBlank(message = "Keyword should be valid")
 	private String keyword;
 
 }

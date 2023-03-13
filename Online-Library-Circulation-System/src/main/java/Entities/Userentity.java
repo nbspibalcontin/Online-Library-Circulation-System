@@ -14,23 +14,23 @@ public class Userentity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
-    @NotBlank
+    @NotBlank(message = "StudentID should be valid")
     @Size(max = 20)
     private String studentID;
     
-    @NotBlank
+    @NotBlank(message = "Firstname should be valid")
     @Size(max = 20)
     private String firstname;
     
-    @NotBlank
+    @NotBlank(message = "Lastname should be valid")
     @Size(max = 20)
     private String lastname;
     
-    @NotBlank
+    @NotBlank(message = "Department should be valid")
     @Size(max = 20)
     private String department;
     
-    @NotBlank
+    @NotBlank(message = "Course should be valid")
     @Size(max = 20)
     private String course;
     
@@ -39,11 +39,13 @@ public class Userentity {
     @Email(message = "Email should be valid")
     private String email;
     
-    @NotBlank
-    @Size(max = 120)
+    @NotBlank(message = "Password should be valid")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
     
-    @NotBlank
+    @NotBlank(message = "Role should be valid")
     @Size(max = 20)
     private String roles;
+    
+    private int booksBorrowed;
 }

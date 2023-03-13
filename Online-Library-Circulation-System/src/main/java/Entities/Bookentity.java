@@ -1,10 +1,15 @@
 package Entities;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Entity
@@ -16,26 +21,25 @@ public class Bookentity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private long bookId;
 	
-    @NotBlank
+	@NotBlank(message = "Title should be valid")
     @Size(max = 30)
 	private String title;
     
-    @NotBlank
+	@NotBlank(message = "Author should be valid")
     @Size(max = 30)
 	private String author;
     
-    @NotBlank
+	@NotBlank(message = "Subject should be valid")
     @Size(max = 1000)
 	private String subject;
     
-    @NotBlank
+	@NotBlank(message = "DatePublish should be valid")
     @Size(max = 20)
 	private String datepublish;
     
-    @Min(value = 1, message = "Value must be greater than or equal to 1")
-    private long quantity;
+    private int quantity;
     
     
 }
