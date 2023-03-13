@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import Entities.Approveentity;
 import Entities.Bookentity;
+import Entities.ReceivedBook;
 import Entities.Reserveentity;
 import Entities.Userentity;
 import Reponses.ErrorResponse;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.UserEntityRepository;
 import Requests.ApproveRequest;
@@ -39,6 +41,9 @@ public class MainController {
 	
 	@Autowired
 	private ReserveEntityRepository reserveEntityRepository;
+	
+	@Autowired
+	private ReceivedBookRepository receivedBookRepository;
 	
     @Autowired
     private UserEntityRepository userEntityRepository;
@@ -135,6 +140,32 @@ public class MainController {
 			} catch (Exception e) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}	
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	//	RECEIVED THE BOOK	//
+	
+	@PostMapping("/received")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<?> ReceivedTheBook(@Valid @RequestBody ReceivedBook receivedBook, BindingResult bindingResult) {
+		try {
+			try {
+			    if (bindingResult.hasErrors()) {
+			        List<String> errors = bindingResult.getAllErrors().stream()
+			                .map(ObjectError::getDefaultMessage)
+			                .collect(Collectors.toList());
+			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			    }
+			    
+				receivedBookRepository.save(receivedBook);
+			
+			return new ResponseEntity<>("Student received the book successfully!", HttpStatus.OK);
+			
+			} catch (Exception e) {
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
