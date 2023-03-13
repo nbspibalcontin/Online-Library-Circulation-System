@@ -1,10 +1,14 @@
 package Controllers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +20,7 @@ import Entities.Approveentity;
 import Entities.Bookentity;
 import Entities.Reserveentity;
 import Entities.Userentity;
+import Reponses.ErrorResponse;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
@@ -71,18 +76,24 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> SaveBook(@Valid @RequestBody Bookentity bookEntity, BindingResult bindingResult) {
 		try {
-			
-	        if (bindingResult.hasErrors()) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Invalid Reserve form data"));
-	        }
-	        
-	        if (bookEntity == null) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Can't be empty"));
-	        }
-	        
-			bookEntityRepository.save(bookEntity);
-			
-			return new ResponseEntity<>("Book created successfully!", HttpStatus.OK);
+			try {							
+			    if (bindingResult.hasErrors()) {
+			        List<String> errors = bindingResult.getAllErrors().stream()
+			                .map(ObjectError::getDefaultMessage)
+			                .collect(Collectors.toList());
+			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			    }
+		        
+		        if (bookEntity == null) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Can't be empty"));
+		        }
+		        
+				bookEntityRepository.save(bookEntity);
+				
+				return new ResponseEntity<>("Book created successfully!", HttpStatus.OK);
+			} catch (Exception e) {
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -95,11 +106,14 @@ public class MainController {
 	public ResponseEntity<?> ApproveTheRequest(@Valid @PathVariable Long id,ApproveRequest approveRequest, BindingResult bindingResult) {
 		try {
 			try {
-	        if (bindingResult.hasErrors()) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Invalid Reserve form data"));
-	        }
+			    if (bindingResult.hasErrors()) {
+			        List<String> errors = bindingResult.getAllErrors().stream()
+			                .map(ObjectError::getDefaultMessage)
+			                .collect(Collectors.toList());
+			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			    }
 	        
-			Reserveentity reserve = reserveEntityRepository.findByid(id);
+			    Reserveentity reserve = reserveEntityRepository.findByid(id);
 
 			        Approveentity approveentity = new Approveentity();
 			        approveentity.setBooktitle(reserve.getBooktitle());
@@ -116,7 +130,7 @@ public class MainController {
 			        reserveEntityRepository.deleteById(reserve.getId());
 					
 			        
-					return new ResponseEntity<>("Book approved successfully!", HttpStatus.OK);
+				return new ResponseEntity<>("Book approved successfully!", HttpStatus.OK);
 					
 			} catch (Exception e) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -146,48 +160,48 @@ public class MainController {
 		try {
 			try {
 				
-			Bookentity book = bookEntityRepository.findBybookId(reserveRequest.getBookId());
-			
-			Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
-			
-        	
-        	
-	        if (book.getQuantity() == 0) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Currently, the book is not available."));
-	        }
-	        
-	        if (bindingResult.hasErrors()) {
-	        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Error: Invalid Reserve form data"));
-	        }
-	        
-	        // check if the student has already borrowed 3 books
-	        if (student.getBooksBorrowed() >= 3) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Student has already borrowed 3 books"));
-	        }
-	        	        
-	        // Check if the book is already reserved by the same student
-	        Reserveentity existingReservation = reserveEntityRepository.findByBookIdAndStudentID(reserveRequest.getBookId(), reserveRequest.getStudentID());
-	        if (existingReservation != null) {
-	            // Book is already reserved by the same student, return a 409 Conflict response
-	            return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("You already reserved this book"));
-	        }
-	        		book.setQuantity(book.getQuantity() - 1);
-	        		student.setBooksBorrowed(student.getBooksBorrowed() + 1);
-        	
-    		        Reserveentity reserveentity = new Reserveentity();
-    		        reserveentity.setBookId(book.getBookId());
-    		        reserveentity.setBooktitle(book.getTitle());
-    		        reserveentity.setCourse(student.getCourse());
-    		        reserveentity.setDepartment(student.getDepartment());
-    		        reserveentity.setEmail(student.getEmail());
-    		        reserveentity.setFirstname(student.getFirstname());
-    		        reserveentity.setLastname(student.getLastname());
-    		        reserveentity.setStudentID(student.getStudentID());
-    		        reserveentity.setStatus("Pending");	      	        
-    		        
-    		        reserveEntityRepository.save(reserveentity);
-    		        
-    				return new ResponseEntity<>("Book reservation successfully!", HttpStatus.OK);
+				Bookentity book = bookEntityRepository.findBybookId(reserveRequest.getBookId());
+				
+				Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
+					        		        	
+		        if (book.getQuantity() == 0) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Currently, the book is not available."));
+		        }
+		        
+		        if (bindingResult.hasErrors()) {
+		        	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Error: Invalid Reserve form data"));
+		        }
+		        
+		        // check if the student has already borrowed 3 books
+		        if (student.getBooksBorrowed() >= 3) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Student has already borrowed 3 books"));
+		        }
+		        	        
+		        // Check if the book is already reserved by the same student
+		        Reserveentity existingReservation = reserveEntityRepository.findByBookIdAndStudentID(reserveRequest.getBookId(), reserveRequest.getStudentID());
+		        if (existingReservation != null) {
+		            // Book is already reserved by the same student, return a 409 Conflict response
+		            return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("You already reserved this book"));
+		        }		        
+		        		book.setQuantity(book.getQuantity() - 1);					//Every Reserve the quantity of book is -1
+		        		student.setBooksBorrowed(student.getBooksBorrowed() + 1);	//Every Reserve of student the BookBorrowed entity is +1 
+	        	
+		        		
+		        		//  Save the Reservation Request  //
+	    		        Reserveentity reserveentity = new Reserveentity();
+	    		        reserveentity.setBookId(book.getBookId());
+	    		        reserveentity.setBooktitle(book.getTitle());
+	    		        reserveentity.setCourse(student.getCourse());
+	    		        reserveentity.setDepartment(student.getDepartment());
+	    		        reserveentity.setEmail(student.getEmail());
+	    		        reserveentity.setFirstname(student.getFirstname());
+	    		        reserveentity.setLastname(student.getLastname());
+	    		        reserveentity.setStudentID(student.getStudentID());
+	    		        reserveentity.setStatus("Pending");	      	        
+	    		        
+	    		        reserveEntityRepository.save(reserveentity);
+	    		        
+	    				return new ResponseEntity<>("Book reservation successfully!", HttpStatus.OK);
 			} catch (Exception e) {
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}

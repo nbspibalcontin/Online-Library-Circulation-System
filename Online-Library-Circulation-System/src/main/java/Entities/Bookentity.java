@@ -39,6 +39,8 @@ public class Bookentity {
     @Size(max = 20)
 	private String datepublish;
     
+	@NotBlank(message = "Quantity should not below 0")
+    @Size(min = 1,max = 50)
     private int quantity;
     
     

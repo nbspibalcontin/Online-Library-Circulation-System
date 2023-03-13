@@ -37,6 +37,7 @@ public class Userentity {
     @NotBlank
     @Size(max = 50)
     @Email(message = "Email should be valid")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@newbrighton.edu.ph$", message = "Email should belong to newbrighton.edu.ph domain")
     private String email;
     
     @NotBlank(message = "Password should be valid")

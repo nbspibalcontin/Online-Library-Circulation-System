@@ -1,5 +1,8 @@
 package Controllers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +13,14 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Entities.Userentity;
+import Reponses.ErrorResponse;
 import Reponses.JwtResponse;
 import Reponses.MessageResponse;
 import Repositories.UserEntityFindByEmail;
@@ -49,31 +54,34 @@ public class AuthController {
 		try {
 			try {
 				
-	        if (bindingResult.hasErrors()) {
-	        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Invalid Reserve form data"));
-	        }
+			    if (bindingResult.hasErrors()) {
+			        List<String> errors = bindingResult.getAllErrors().stream()
+			                .map(ObjectError::getDefaultMessage)
+			                .collect(Collectors.toList());
+			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			    }
 	        
-	        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword()));
-	        if (authentication.isAuthenticated()) {
-	        	
-		        
-	        	String jwt = jwtService.generateToken(signInRequest.getEmail());
-	        	
-	        	final Userentity user = userEntityFindByEmail.findByEmail(signInRequest.getEmail());
-	        		       	        	
-	        	return ResponseEntity.ok(new JwtResponse(jwt,
-	        			user.getId(),
-	        			user.getStudentID(),
-	        			user.getFirstname(),
-	        			user.getLastname(),
-	        			user.getDepartment(),
-	        			user.getCourse(),
-	        			user.getEmail(),
-	        			user.getRoles()));
-	        	
-	        } else {
-	            throw new UsernameNotFoundException("Error: Invalid user request !");
-	        }	
+		        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword()));
+		        if (authentication.isAuthenticated()) {
+		        	
+			        
+		        	String jwt = jwtService.generateToken(signInRequest.getEmail());
+		        	
+		        	final Userentity user = userEntityFindByEmail.findByEmail(signInRequest.getEmail());
+		        		       	        	
+		        	return ResponseEntity.ok(new JwtResponse(jwt,
+		        			user.getId(),
+		        			user.getStudentID(),
+		        			user.getFirstname(),
+		        			user.getLastname(),
+		        			user.getDepartment(),
+		        			user.getCourse(),
+		        			user.getEmail(),
+		        			user.getRoles()));
+		        	
+			        } else {
+			            throw new UsernameNotFoundException("Error: Invalid user request !");
+			        }	
 			}catch (AuthenticationException e) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: Invalid username or password"));
 			}
@@ -85,22 +93,33 @@ public class AuthController {
 	@PostMapping("/signup")
 	public ResponseEntity<?> SignUp(@Valid @RequestBody Userentity userEntity, BindingResult bindingResult) {
 		try {
-		    if (userEntityRepository.existsByEmail(userEntity.getEmail())) {
-		        return ResponseEntity
-		            .badRequest()
-		            .body(new MessageResponse("Error: Email is already taken!"));
-		      }		 
-		    
-		    if (userEntityRepository.existsByStudentID(userEntity.getStudentID())) {
-		        return ResponseEntity
-		            .badRequest()
-		            .body(new MessageResponse("Error: Student_ID is already taken!"));
-		      }	
-		    
-	    	userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
-	    	userEntityRepository.save(userEntity);
-	    	
-			return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
+			try {
+			    if (bindingResult.hasErrors()) {
+			        List<String> errors = bindingResult.getAllErrors().stream()
+			                .map(ObjectError::getDefaultMessage)
+			                .collect(Collectors.toList());
+			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			    }
+		        
+			    if (userEntityRepository.existsByEmail(userEntity.getEmail())) {
+			        return ResponseEntity
+			            .badRequest()
+			            .body(new MessageResponse("Error: Email is already taken!"));
+			      }		 
+			    
+			    if (userEntityRepository.existsByStudentID(userEntity.getStudentID())) {
+			        return ResponseEntity
+			            .badRequest()
+			            .body(new MessageResponse("Error: Student_ID is already taken!"));
+			      }	
+			    
+		    	userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+		    	userEntityRepository.save(userEntity);
+		    	
+				return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
+			} catch (Exception e) {
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

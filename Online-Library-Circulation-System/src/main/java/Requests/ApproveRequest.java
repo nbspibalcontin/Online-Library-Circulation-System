@@ -13,26 +13,26 @@ public class ApproveRequest {
 
 		private Long bookId;
 	    
-		@NotBlank(message = "StudentID should be valid")
+		@NotBlank(message = "StudentID should not be Blank")
 		private String StudentID;
 		
-		@NotBlank(message = "Firstname should be valid")
+		@NotBlank(message = "Firstname should not be Blank")
 		private String firstname;
 		
-		@NotBlank(message = "Lastname should be valid")
+		@NotBlank(message = "Lastname should not be Blank")
 		private String lastname;
 		
-		@NotBlank(message = "Department should be valid")
+		@NotBlank(message = "Department should not be Blank")
 		private String department;
 		
-		@NotBlank(message = "Course should be valid")
+		@NotBlank(message = "Course should not be Blank")
 		private String course;
 		
-		@NotBlank(message = "Email should be valid")
+		@NotBlank(message = "Email should not be Blank")
 		@Email(message = "Email should be valid")
 		private String email;
 		
-		@NotBlank(message = "BookTitle should be valid")
+		@NotBlank(message = "BookTitle should not be Blank")
 		private String booktitle;
 	    
 }
