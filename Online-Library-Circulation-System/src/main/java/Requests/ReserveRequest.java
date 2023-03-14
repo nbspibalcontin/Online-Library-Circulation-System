@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReserveRequest {
 
-		private Long BookId;
-	    
-		@NotBlank
-		private String StudentID;
-		
-	    
+	private long bookId;
+	
+	@NotBlank
+	private String studentID;
+	
+
 }

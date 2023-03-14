@@ -1,5 +1,7 @@
 package Controllers;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +30,7 @@ import Repositories.BookEntityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.UserEntityRepository;
-import Requests.ApproveRequest;
+import Requests.ReceivedRequest;
 import Requests.ReserveRequest;
 import jakarta.validation.Valid;
 
@@ -50,6 +52,8 @@ public class MainController {
     
     @Autowired
     private ApproveentityRepository approveentityRepository;
+    
+
     
 
 //	@PostMapping("/url")
@@ -97,7 +101,7 @@ public class MainController {
 				
 				return new ResponseEntity<>("Book created successfully!", HttpStatus.OK);
 			} catch (Exception e) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -106,19 +110,40 @@ public class MainController {
 	
 	//-----APPROVE THE RESERVATION OF BOOK----//
 	
+
 	@PostMapping("/approve/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> ApproveTheRequest(@Valid @PathVariable Long id,ApproveRequest approveRequest, BindingResult bindingResult) {
+	public ResponseEntity<?> ApproveTheRequest(@PathVariable Long id) {
 		try {
 			try {
-			    if (bindingResult.hasErrors()) {
-			        List<String> errors = bindingResult.getAllErrors().stream()
-			                .map(ObjectError::getDefaultMessage)
-			                .collect(Collectors.toList());
-			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
-			    }
-	        
+			    LocalDateTime currentDateTime = LocalDateTime.now();			    
+			    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a");
+			    String formattedDateTime = currentDateTime.format(formatter);
+
+			       boolean bookExists = reserveEntityRepository.existsById(id);
+			        if (!bookExists) {
+			        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("ID doesn't exist! in reserve request"));				        
+			        }
+			        
 			    Reserveentity reserve = reserveEntityRepository.findByid(id);
+			    
+				Bookentity book = bookEntityRepository.findBybookId(reserve.getBookId());
+				
+				Userentity student = userEntityRepository.findByStudentID(reserve.getStudentID());
+				
+
+		        
+		        if (book.getQuantity() == 0) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Currently, the book is not available."));
+		        }
+		        
+		        // check if the student has already borrowed 3 books
+		        if (student.getBooksBorrowed() >= 3) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Student has already borrowed 3 books"));
+		        }
+		        
+		        
+				
 
 			        Approveentity approveentity = new Approveentity();
 			        approveentity.setBooktitle(reserve.getBooktitle());
@@ -128,10 +153,13 @@ public class MainController {
 			        approveentity.setFirstname(reserve.getFirstname());
 			        approveentity.setLastname(reserve.getLastname());
 			        approveentity.setStudentID(reserve.getStudentID());
+			        approveentity.setBookId(book.getBookId());
+			        approveentity.setApprovedAt(formattedDateTime);
 			        approveentity.setStatus("Approved");	      	        
 			        
 			        approveentityRepository.save(approveentity);
-			        
+			        bookEntityRepository.UpdateQuantityBook(book.getBookId());
+			        userEntityRepository.UpdateBorrowedStudentLimit(student.getStudentID());
 			        reserveEntityRepository.deleteById(reserve.getId());
 					
 			        
@@ -144,12 +172,11 @@ public class MainController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
 	//	RECEIVED THE BOOK	//
 	
 	@PostMapping("/received")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> ReceivedTheBook(@Valid @RequestBody ReceivedBook receivedBook, BindingResult bindingResult) {
+	public ResponseEntity<?> ReceivedTheBook(@Valid @RequestBody ReceivedRequest receivedRequest, BindingResult bindingResult) {
 		try {
 			try {
 			    if (bindingResult.hasErrors()) {
@@ -159,6 +186,10 @@ public class MainController {
 			        return ResponseEntity.badRequest().body(new ErrorResponse(errors));
 			    }
 			    
+			    ReceivedBook receivedBook = new ReceivedBook();
+			    receivedBook.setStudentID(receivedRequest.getStudentID());
+			    receivedBook.setBookId(receivedRequest.getBookId());
+			    receivedBook.setStatus("Borrowed");
 				receivedBookRepository.save(receivedBook);
 			
 			return new ResponseEntity<>("Student received the book successfully!", HttpStatus.OK);
@@ -186,15 +217,22 @@ public class MainController {
 	//-----RESERVE BOOK----//
 	
 	@PostMapping("/reserve")
-	@PreAuthorize("hasAuthority('ROLE_USER')")
-	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest,Bookentity bookentity, BindingResult bindingResult) {
+	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest, BindingResult bindingResult) {
 		try {
 			try {
 				
 				Bookentity book = bookEntityRepository.findBybookId(reserveRequest.getBookId());
 				
 				Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
-					        		        	
+				
+			    LocalDateTime currentDateTime = LocalDateTime.now();			    
+			    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a");
+			    String formattedDateTime = currentDateTime.format(formatter);
+			    
+		        if (book == null) {
+		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book!"));
+		        }
+		        
 		        if (book.getQuantity() == 0) {
 		        	return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Currently, the book is not available."));
 		        }
@@ -213,11 +251,8 @@ public class MainController {
 		        if (existingReservation != null) {
 		            // Book is already reserved by the same student, return a 409 Conflict response
 		            return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("You already reserved this book"));
-		        }		        
-		        		book.setQuantity(book.getQuantity() - 1);					//Every Reserve the quantity of book is -1
-		        		student.setBooksBorrowed(student.getBooksBorrowed() + 1);	//Every Reserve of student the BookBorrowed entity is +1 
-	        	
-		        		
+		        }		     
+		        
 		        		//  Save the Reservation Request  //
 	    		        Reserveentity reserveentity = new Reserveentity();
 	    		        reserveentity.setBookId(book.getBookId());
@@ -228,6 +263,7 @@ public class MainController {
 	    		        reserveentity.setFirstname(student.getFirstname());
 	    		        reserveentity.setLastname(student.getLastname());
 	    		        reserveentity.setStudentID(student.getStudentID());
+	    		        reserveentity.setReserveAt(formattedDateTime);
 	    		        reserveentity.setStatus("Pending");	      	        
 	    		        
 	    		        reserveEntityRepository.save(reserveentity);
@@ -240,5 +276,5 @@ public class MainController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-}
+	}
+

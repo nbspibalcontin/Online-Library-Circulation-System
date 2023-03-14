@@ -3,10 +3,12 @@ package Repositories;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import Entities.Bookentity;
+import jakarta.transaction.Transactional;
 
 public interface BookEntityRepository extends JpaRepository<Bookentity, Long>{
 
@@ -24,5 +26,10 @@ public interface BookEntityRepository extends JpaRepository<Bookentity, Long>{
     
     Bookentity findBybookId(Long BookId);
     
+    @Modifying
+    @Transactional 
+    @Query(value ="UPDATE Book_entity b set b.quantity = b.quantity - 1 where b.book_id = :bookId",nativeQuery = true)
+    int UpdateQuantityBook(@Param("bookId") Long bookId);
+
     
 }

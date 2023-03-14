@@ -49,4 +49,6 @@ public class Userentity {
     private String roles;
     
     private int booksBorrowed;
+    
+    private double fines;
 }

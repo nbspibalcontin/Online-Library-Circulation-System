@@ -47,4 +47,7 @@ public class Reserveentity {
     @Size(max = 30)
 	private String booktitle;
     
+    @Size(max = 30)
+    private String reserveAt;
+    
 }

@@ -12,4 +12,6 @@ public interface ReserveEntityRepository extends JpaRepository<Reserveentity, Lo
 	Reserveentity findByid(Long id);
 
 	Reserveentity deleteByStudentID(String StudentID);
+	
+	boolean existsById(Long id);
 }
