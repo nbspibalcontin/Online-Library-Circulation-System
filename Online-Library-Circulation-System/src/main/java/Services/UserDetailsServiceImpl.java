@@ -12,15 +12,15 @@ import Entities.Userentity;
 import Repositories.UserEntityRepository;
 
 @Component
-public class UserDetailsServiceImpl implements UserDetailsService{
-    @Autowired
-    private UserEntityRepository repository;
+public class UserDetailsServiceImpl implements UserDetailsService {
+	@Autowired
+	private UserEntityRepository repository;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<Userentity> userInfo = repository.findByEmail(email);
-        return userInfo.map(UserDetailsImpl::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Email not found " + email));
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		Optional<Userentity> userInfo = repository.findByEmail(email);
+		return userInfo.map(UserDetailsImpl::new)
+				.orElseThrow(() -> new UsernameNotFoundException("Email not found " + email));
 
-    }
+	}
 }

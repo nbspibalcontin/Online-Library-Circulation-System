@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignInRequest {
-	
+
 	@NotBlank(message = "Email should be valid")
-    private String email ;
-	
+	private String email;
+
 	@NotBlank(message = "Password should be valid")
-    private String password;
+	private String password;
 }

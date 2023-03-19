@@ -11,24 +11,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import Entities.Userentity;
 
-public class UserDetailsImpl implements UserDetails{
+public class UserDetailsImpl implements UserDetails {
 
-    /**
+	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private String email;
-    private String password;
-    private List<GrantedAuthority> authorities;
+	private String password;
+	private List<GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Userentity userEntity) {
-    	email=userEntity.getEmail();
-        password=userEntity.getPassword();
-        authorities= Arrays.stream(userEntity.getRoles().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-    
+	public UserDetailsImpl(Userentity userEntity) {
+		email = userEntity.getEmail();
+		password = userEntity.getPassword();
+		authorities = Arrays.stream(userEntity.getRoles().split(",")).map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toList());
+	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return authorities;

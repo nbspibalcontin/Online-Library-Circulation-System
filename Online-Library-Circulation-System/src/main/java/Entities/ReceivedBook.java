@@ -1,6 +1,6 @@
 package Entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,21 +22,20 @@ public class ReceivedBook {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-	
-    @Size(max = 20)
-    private String studentID;
-    
-    private int bookId;
-       
-    private LocalDate dueDate;
-    
-    @Size(max = 20)
-    private String status;
-    
-    @PrePersist
-    public void prePersist() {
-        this.dueDate = LocalDate.now().plusDays(3);
-    }
-    
-    
+
+	@Size(max = 20)
+	private String studentID;
+
+	private Long bookId;
+
+	@Size(max = 20)
+	private String status;
+
+	private LocalDateTime dueDate;
+
+	@PrePersist
+	public void prePersist() {
+		dueDate = LocalDateTime.now();
+	}
+
 }

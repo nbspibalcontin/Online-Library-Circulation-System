@@ -21,46 +21,44 @@ public class BookController {
 
 	@Autowired
 	private BookEntityRepository bookEntityRepository;
-	
 
-	//	SEARCH BOOK	//
-	
+	// SEARCH BOOK //
+
 	@GetMapping("/searchbook")
 	public ResponseEntity<?> searchCustomers(@RequestBody SearchBook searchBook) {
-	    try {
-	    	List<Bookentity> response = new ArrayList<>();
-	        switch (searchBook.getFilter()) {
-	        
-	            case "title":
-	            	response = bookEntityRepository.searchBytitle(searchBook.getKeyword());
-	                break;
-	                
-	            case "author":
-	            	response = bookEntityRepository.searchByauthor(searchBook.getKeyword());
-	                break;
-	                
-	            case "subject":
-	            	response = bookEntityRepository.searchBysubject(searchBook.getKeyword());
-	                break;
-	                
-	            case "datepublish":
-	            	response = bookEntityRepository.searchBydatepublish(searchBook.getKeyword());
-	                break;
-	                
-	            default:
-	            	response = bookEntityRepository.findAll();
-	                break;
-	        }
-	        
-	        if (response.isEmpty()) {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Book not found!");
-	        } else {
-	            return ResponseEntity.ok(response);
-	        }
-	    } catch (Exception e) {
-	        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-	    }
+		try {
+			List<Bookentity> response = new ArrayList<>();
+			switch (searchBook.getFilter()) {
+
+			case "title":
+				response = bookEntityRepository.searchBytitle(searchBook.getKeyword());
+				break;
+
+			case "author":
+				response = bookEntityRepository.searchByauthor(searchBook.getKeyword());
+				break;
+
+			case "subject":
+				response = bookEntityRepository.searchBysubject(searchBook.getKeyword());
+				break;
+
+			case "datepublish":
+				response = bookEntityRepository.searchBydatepublish(searchBook.getKeyword());
+				break;
+
+			default:
+				response = bookEntityRepository.findAll();
+				break;
+			}
+
+			if (response.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Book not found!");
+			} else {
+				return ResponseEntity.ok(response);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	
+
 }
