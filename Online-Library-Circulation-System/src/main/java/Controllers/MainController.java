@@ -15,15 +15,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import Entities.Approveentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
-import Entities.Returnentity;
 import Entities.Userentity;
 import Reponses.ErrorResponse;
 import Reponses.MessageResponse;
+import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
+import Repositories.ReturnEntityRepository;
 import Repositories.UserEntityRepository;
 import Requests.ReserveRequest;
 import Services.BookService;
@@ -42,6 +45,15 @@ public class MainController {
 
 	@Autowired
 	private UserEntityRepository userEntityRepository;
+
+	@Autowired
+	private ApproveentityRepository approveentityRepository;
+
+	@Autowired
+	private ReceivedBookRepository receivedBookRepository;
+	
+	@Autowired
+	private ReturnEntityRepository returnEntityRepository;
 
 	@Autowired
 	private BookService bookService;
@@ -117,41 +129,80 @@ public class MainController {
 
 	// RECEIVED THE BOOK //
 
-	@PostMapping("/received")
+	@PostMapping("/received/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> ReceivedTheBook(@Valid @RequestBody ReceivedBook receivedBook,
-			BindingResult bindingResult) {
+	public ResponseEntity<?> ReceivedTheBook(@PathVariable Long id) {
 
-		Bookentity book = bookEntityRepository.findBybookId(receivedBook.getBookId());
+		boolean bookExists = approveentityRepository.existsById(id);
 
-		Userentity student = userEntityRepository.findByStudentID(receivedBook.getStudentID());
+		if (!bookExists) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(new MessageResponse("ID doesn't exist! in approved request"));
+		}
+
+		Approveentity approveentity = approveentityRepository.findByid(id);
+
+		Bookentity book = bookEntityRepository.findBybookId(approveentity.getBookId());
+
+		Userentity student = userEntityRepository.findByStudentID(approveentity.getStudentID());
 
 		if (book == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book!"));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
 		}
 
 		if (student == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student!"));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
 		}
 
-		if (bindingResult.hasErrors()) {
-			List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
-					.collect(Collectors.toList());
-			return ResponseEntity.badRequest().body(new ErrorResponse(errors));
-		}
-
-		return bookService.ReceivedTheBook(receivedBook);
+		return bookService.ReceivedTheBook(id);
 
 	}
 
 	// RETURN //
 	// DUE DATE THE BOOK AND FINES //
-	@PostMapping("/return")
+
+	@PostMapping("/return/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> ReturnTheBook(@RequestBody Returnentity returnentity) {
+	public ResponseEntity<?> ReturnTheBook(@PathVariable Long id) {
 
-		return bookService.ReturnAndCalculateFines(returnentity);
+		boolean bookExists = receivedBookRepository.existsById(id);
 
+		if (!bookExists) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(new MessageResponse("ID doesn't exist! in received request"));
+		}
+
+		ReceivedBook received = receivedBookRepository.findByid(id);
+
+		ReceivedBook book = receivedBookRepository.findBybookId(received.getBookId());
+
+		ReceivedBook receivedBook = receivedBookRepository.findByStudentID(received.getStudentID());
+
+		if (book == null) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
+		}
+
+		if (receivedBook == null) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
+		}
+
+		return bookService.ReturnAndCalculateFines(id);
+
+	}
+
+	// SUCCESSFUL TRANSACTION //
+
+	@PostMapping("/successful/{id}")
+	public ResponseEntity<?> SuccessfulTransaction(@PathVariable Long id) {
+
+		boolean bookExists = returnEntityRepository.existsById(id);
+
+		if (!bookExists) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(new MessageResponse("ID doesn't exist! in received request"));
+		}
+
+		return bookService.SuccessfulTransaction(id);
 	}
 
 	// ------------------------USER---------------------------//
@@ -166,12 +217,20 @@ public class MainController {
 
 		Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
 
+		boolean exists = approveentityRepository.existsByBookIdAndStudentID(reserveRequest.getBookId(),
+				reserveRequest.getStudentID());
+
+		if (exists) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(new MessageResponse("You already request the book just wait for admin approval!"));
+		}
+
 		if (book == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book!"));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
 		}
 
 		if (student == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student!"));
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
 		}
 
 		if (book.getQuantity() == 0) {

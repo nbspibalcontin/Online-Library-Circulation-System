@@ -31,4 +31,9 @@ public interface BookEntityRepository extends JpaRepository<Bookentity, Long> {
 	@Query(value = "UPDATE Book_entity b set b.quantity = b.quantity - 1 where b.book_id = :bookId", nativeQuery = true)
 	int UpdateQuantityBook(@Param("bookId") Long bookId);
 
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE Book_entity b set b.quantity = b.quantity + 1 where b.book_id = :bookId", nativeQuery = true)
+	int UpdateQuantityBook1(@Param("bookId") Long bookId);
+
 }

@@ -2,6 +2,7 @@ package Services;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,12 +15,14 @@ import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
 import Entities.Returnentity;
+import Entities.Successfulentity;
 import Entities.Userentity;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
+import Repositories.SuccessfulEntityRepository;
 import Repositories.UserEntityRepository;
 
 @Service
@@ -42,6 +45,9 @@ public class BookService {
 
 	@Autowired
 	private ReturnEntityRepository returnEntityRepository;
+
+	@Autowired
+	private SuccessfulEntityRepository successfulEntityRepository;
 
 	private static final double DAILY_FINE_AMOUNT = 30.50;
 
@@ -86,7 +92,6 @@ public class BookService {
 			approveentity.setStatus("Approved");
 
 			approveentityRepository.save(approveentity);
-
 			bookEntityRepository.UpdateQuantityBook(book.getBookId());
 			userEntityRepository.UpdateBorrowedStudentLimit(student.getStudentID());
 			reserveEntityRepository.deleteById(reserve.getId());
@@ -104,11 +109,24 @@ public class BookService {
 	}
 
 	// RECEIVED THE BOOK //
-	public ResponseEntity<?> ReceivedTheBook(ReceivedBook receivedBook) {
+
+	public ResponseEntity<?> ReceivedTheBook(Long id) {
 		try {
 
+			Approveentity approveentity = approveentityRepository.findByid(id);
+
+			LocalDateTime now = LocalDateTime.now();
+			LocalDateTime dueDate = now.plusDays(3);
+
+			ReceivedBook receivedBook = new ReceivedBook();
+
 			receivedBook.setStatus("Borrowed");
+			receivedBook.setDueDate(dueDate);
+			receivedBook.setBookId(approveentity.getBookId());
+			receivedBook.setStudentID(approveentity.getStudentID());
+
 			receivedBookRepository.save(receivedBook);
+			approveentityRepository.deleteById(id);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json");
@@ -125,26 +143,23 @@ public class BookService {
 
 	// RETURN //
 	// DUE DATA AND FINES //
-	public ResponseEntity<?> ReturnAndCalculateFines(Returnentity returnentity) {
+
+	public ResponseEntity<?> ReturnAndCalculateFines(Long id) {
 		try {
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json");
 			headers.add("Authorization", "Bearer token");
 
-			Bookentity book = bookEntityRepository.findBybookId(returnentity.getBookId());
+			ReceivedBook received = receivedBookRepository.findByid(id);
 
-			Approveentity approveentity = approveentityRepository.findByStudentID(returnentity.getStudentID());
+			Bookentity book = bookEntityRepository.findBybookId(received.getBookId());
 
-			if (book == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).headers(headers).body("Cannot find the book!");
-			}
+			Userentity student = userEntityRepository.findByStudentID(received.getStudentID());
 
-			if (approveentity == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).headers(headers).body("Cannot find the Student!");
-			}
+			Returnentity returnentity = new Returnentity();
 
-			LocalDateTime dueDate = approveentity.getApprovedAt();
+			LocalDateTime dueDate = received.getDueDate();
 			LocalDateTime currentDate = LocalDateTime.now();
 
 			// Calculate the difference between due date and return date
@@ -156,18 +171,25 @@ public class BookService {
 			double fines = DAILY_FINE_AMOUNT * daysOverdue;
 
 			if (fines > 0) {
-				returnentity.setDueDate(approveentity.getApprovedAt());
+				returnentity.setDueDate(received.getDueDate());
+				returnentity.setBookId(received.getBookId());
+				returnentity.setStudentID(received.getStudentID());
 				returnentity.setStatus("Returned");
 				returnentity.setFines(fines);
 				returnentity.setReturnDate(currentDate);
 			} else {
-				returnentity.setDueDate(approveentity.getApprovedAt());
+				returnentity.setDueDate(received.getDueDate());
+				returnentity.setBookId(received.getBookId());
+				returnentity.setStudentID(received.getStudentID());
 				returnentity.setStatus("Returned");
 				returnentity.setFines(0);
 				returnentity.setReturnDate(currentDate);
 			}
 
 			returnEntityRepository.save(returnentity);
+			bookEntityRepository.UpdateQuantityBook1(book.getBookId());
+			userEntityRepository.UpdateBorrowedStudentLimit1(student.getStudentID());
+			receivedBookRepository.deleteById(id);
 
 			// Return the fines as a response
 			if (fines > 0) {
@@ -181,4 +203,44 @@ public class BookService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
 	}
+
+	public ResponseEntity<?> SuccessfulTransaction(Long id) {
+		try {
+
+			Returnentity returned = returnEntityRepository.findByid(id);
+
+			Userentity student = userEntityRepository.findByStudentID(returned.getStudentID());
+
+			Successfulentity successfulentity = new Successfulentity();
+			successfulentity.setBookId(returned.getBookId());
+			successfulentity.setCourse(student.getCourse());
+			successfulentity.setDepartment(student.getDepartment());
+			successfulentity.setDueDate(returned.getDueDate());
+			successfulentity.setEmail(student.getEmail());
+			successfulentity.setFirstname(student.getFirstname());
+			successfulentity.setLastname(student.getLastname());
+			successfulentity.setReturnDate(returned.getReturnDate());
+			successfulentity.setStudentID(student.getStudentID());
+
+			successfulEntityRepository.save(successfulentity);
+			returnEntityRepository.deleteById(id);
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json");
+			headers.add("Authorization", "Bearer token");
+			
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body("Book transaction successfully.");
+
+		} catch (Exception e) {
+			// Log the error or do something else with it
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+		}
+
+	}
+
+	// GET SUCCESSFUL TRANSACTION //
+	public List<Successfulentity> getAllSuccessfulTransaction() {
+		return successfulEntityRepository.findAll();
+	}
+
 }

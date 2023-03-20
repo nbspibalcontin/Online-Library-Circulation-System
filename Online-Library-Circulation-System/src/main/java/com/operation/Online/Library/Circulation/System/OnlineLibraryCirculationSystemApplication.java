@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan({"Controllers", "Services", "Security", "Responses", "Requests"})
+@ComponentScan({ "Controllers", "Services", "Security", "Responses", "Requests" })
 @EntityScan("Entities")
 @EnableJpaRepositories("Repositories")
 public class OnlineLibraryCirculationSystemApplication {
@@ -15,9 +15,5 @@ public class OnlineLibraryCirculationSystemApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(OnlineLibraryCirculationSystemApplication.class, args);
 	}
-	
-	//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
-	
-	
 
 }

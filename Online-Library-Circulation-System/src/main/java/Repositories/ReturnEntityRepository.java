@@ -7,4 +7,6 @@ import Entities.Returnentity;
 public interface ReturnEntityRepository extends JpaRepository<Returnentity, Long> {
 
 	Returnentity findByStudentID(String studentID);
+
+	Returnentity findByid(Long BookId);
 }

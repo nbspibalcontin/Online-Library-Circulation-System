@@ -6,5 +6,9 @@ import Entities.Approveentity;
 
 public interface ApproveentityRepository extends JpaRepository<Approveentity, Long> {
 
-	Approveentity findByStudentID(String studentID);
+	Approveentity findByid(Long BookId);
+
+	boolean existsByBookIdAndStudentID(Long bookId, String studentID);
+	
+	boolean existsById(Long id);
 }
