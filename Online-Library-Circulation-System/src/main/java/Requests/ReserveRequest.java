@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReserveRequest {
 
-	private long bookId;
+	private String bookId;
 
 	@NotBlank
 	private String studentID;

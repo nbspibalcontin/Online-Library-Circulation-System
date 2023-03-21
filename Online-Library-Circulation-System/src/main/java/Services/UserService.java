@@ -1,5 +1,7 @@
 package Services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,7 @@ public class UserService {
 	private PasswordEncoder passwordEncoder;
 
 	// ADD USER //
+	
 	public ResponseEntity<?> createUser(Userentity userentity) {
 		try {
 
@@ -50,6 +53,7 @@ public class UserService {
 	}
 
 	// RESERVE THE BOOK //
+	
 	public ResponseEntity<?> ReserveBook(ReserveRequest reserveRequest) {
 		try {
 
@@ -82,6 +86,30 @@ public class UserService {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
 
+	}
+	
+	// GET ALL RETURNED BOOKS //
+
+	public List<Userentity> getAllUsers() {
+		return userEntityRepository.findAll();
+	}
+	
+	// GET ALL RESERVATION REQUEST //
+	
+	public List<Reserveentity> getAllReservation() {
+		return reserveEntityRepository.findAll();
+	}
+	
+	// GET STUDENT BY ID //
+
+	public Userentity getStudentById(Long id) {
+		return userEntityRepository.findByid(id);
+	}
+	
+	// GET STUDENT BY ID //
+
+	public Reserveentity getReserveById(Long id) {
+		return reserveEntityRepository.findByid(id);
 	}
 
 }

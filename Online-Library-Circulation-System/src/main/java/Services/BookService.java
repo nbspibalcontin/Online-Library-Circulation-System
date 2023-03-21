@@ -2,6 +2,7 @@ package Services;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.SuccessfulEntityRepository;
 import Repositories.UserEntityRepository;
+import Requests.SearchBook;
 
 @Service
 public class BookService {
@@ -52,11 +54,13 @@ public class BookService {
 	private static final double DAILY_FINE_AMOUNT = 30.50;
 
 	// ADD BOOK //
+
 	public ResponseEntity<?> createBook(Bookentity bookentity) {
 		try {
 
 			bookEntityRepository.save(bookentity);
 
+			// Custom HttpHeader
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json");
 			headers.add("Authorization", "Bearer token");
@@ -74,12 +78,16 @@ public class BookService {
 	public ResponseEntity<?> ApproveTheBook(Long id) {
 		try {
 
+			// Find the Reserve by Id
 			Reserveentity reserve = reserveEntityRepository.findByid(id);
 
+			// Find the Book by BookId
 			Bookentity book = bookEntityRepository.findBybookId(reserve.getBookId());
 
+			// Find the Student by StudentID
 			Userentity student = userEntityRepository.findByStudentID(reserve.getStudentID());
 
+			// Save the key data's of ApproveEntity
 			Approveentity approveentity = new Approveentity();
 			approveentity.setBooktitle(reserve.getBooktitle());
 			approveentity.setCourse(reserve.getCourse());
@@ -113,11 +121,14 @@ public class BookService {
 	public ResponseEntity<?> ReceivedTheBook(Long id) {
 		try {
 
+			// Find the Approved by Id
 			Approveentity approveentity = approveentityRepository.findByid(id);
 
+			// LocalDateandTime
 			LocalDateTime now = LocalDateTime.now();
 			LocalDateTime dueDate = now.plusDays(3);
 
+			// Save the key data's of ReceivedBookEntity
 			ReceivedBook receivedBook = new ReceivedBook();
 
 			receivedBook.setStatus("Borrowed");
@@ -147,18 +158,24 @@ public class BookService {
 	public ResponseEntity<?> ReturnAndCalculateFines(Long id) {
 		try {
 
+			// Custom HttpHeaders
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json");
 			headers.add("Authorization", "Bearer token");
 
+			// Find the Received by Id
 			ReceivedBook received = receivedBookRepository.findByid(id);
 
+			// Find the Book by BookId
 			Bookentity book = bookEntityRepository.findBybookId(received.getBookId());
 
+			// Find the Student by StudentID
 			Userentity student = userEntityRepository.findByStudentID(received.getStudentID());
 
+			// Save the key data's of ReturnEntity
 			Returnentity returnentity = new Returnentity();
 
+			// LocalDateandTime
 			LocalDateTime dueDate = received.getDueDate();
 			LocalDateTime currentDate = LocalDateTime.now();
 
@@ -204,13 +221,18 @@ public class BookService {
 		}
 	}
 
+	// SUCCESSFUL TRANSACTION //
+
 	public ResponseEntity<?> SuccessfulTransaction(Long id) {
 		try {
 
+			// Find the ReturnEntity by Id
 			Returnentity returned = returnEntityRepository.findByid(id);
 
+			// Find the Student by StudentID
 			Userentity student = userEntityRepository.findByStudentID(returned.getStudentID());
 
+			// Save the key data's of SuccessfulEntity
 			Successfulentity successfulentity = new Successfulentity();
 			successfulentity.setBookId(returned.getBookId());
 			successfulentity.setCourse(student.getCourse());
@@ -224,11 +246,11 @@ public class BookService {
 
 			successfulEntityRepository.save(successfulentity);
 			returnEntityRepository.deleteById(id);
-			
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Content-Type", "application/json");
 			headers.add("Authorization", "Bearer token");
-			
+
 			return ResponseEntity.status(HttpStatus.OK).headers(headers).body("Book transaction successfully.");
 
 		} catch (Exception e) {
@@ -238,9 +260,113 @@ public class BookService {
 
 	}
 
-	// GET SUCCESSFUL TRANSACTION //
+	// SEARCH BOOK //
+
+	public ResponseEntity<?> SearchBook(SearchBook searchBook) {
+		try {
+
+			List<Bookentity> response = new ArrayList<>();
+
+			switch (searchBook.getFilter()) {
+
+			case "title":
+				response = bookEntityRepository.searchBytitle(searchBook.getKeyword());
+				break;
+
+			case "author":
+				response = bookEntityRepository.searchByauthor(searchBook.getKeyword());
+				break;
+
+			case "subject":
+				response = bookEntityRepository.searchBysubject(searchBook.getKeyword());
+				break;
+
+			case "datepublish":
+				response = bookEntityRepository.searchBydatepublish(searchBook.getKeyword());
+				break;
+
+			default:
+				response = bookEntityRepository.findAll();
+				break;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json");
+			headers.add("Authorization", "No Bearer token");
+
+			if (response.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).body("Book not found!");
+			} else {
+				return ResponseEntity.status(HttpStatus.OK).headers(headers).body(response);
+			}
+		} catch (Exception e) {
+			// Log the error or do something else with it
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+		}
+	}
+
+	// ------------------------FindAll---------------------------//
+
+	// GET ALL SUCCESSFUL TRANSACTION //
+
 	public List<Successfulentity> getAllSuccessfulTransaction() {
 		return successfulEntityRepository.findAll();
+	}
+
+	// GET ALL BOOKS //
+
+	public List<Bookentity> getAllBooks() {
+		return bookEntityRepository.findAll();
+	}
+
+	// GET ALL APPROVAL REQUEST //
+
+	public List<Approveentity> getAllApprovalRequest() {
+		return approveentityRepository.findAll();
+	}
+
+	// GET ALL RECEIVED BOOKS //
+
+	public List<ReceivedBook> getAllReceivedBooks() {
+		return receivedBookRepository.findAll();
+	}
+
+	// GET ALL RETURNED BOOKS //
+
+	public List<Returnentity> getAllReturnedBooks() {
+		return returnEntityRepository.findAll();
+	}
+
+	// ------------------------FindBy---------------------------//
+
+	// GET SUCCESSFUL TRANSACTION BY ID //
+
+	public Successfulentity getSuccessfulTransactionById(Long id) {
+		return successfulEntityRepository.findByid(id);
+	}
+
+	// GET APPROVAL REQUEST BY ID //
+
+	public Approveentity getApprovalRequestById(Long id) {
+		return approveentityRepository.findByid(id);
+	}
+
+	// GET RECEIVED BOOKS BY ID //
+
+	public ReceivedBook getReceivedBooksById(Long id) {
+		return receivedBookRepository.findByid(id);
+	}
+
+	// GET BOOKS BY ID //
+
+	public Bookentity getBooksById(Long id) {
+		return bookEntityRepository.findByid(id);
+	}
+
+	// GET RETURNED BOOKS BY ID //
+
+	public Returnentity getReturnedBooksById(Long id) {
+		return returnEntityRepository.findByid(id);
 	}
 
 }

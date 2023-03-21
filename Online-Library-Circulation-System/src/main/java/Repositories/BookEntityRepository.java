@@ -24,16 +24,18 @@ public interface BookEntityRepository extends JpaRepository<Bookentity, Long> {
 	@Query("SELECT b FROM Bookentity b WHERE b.datepublish LIKE %:searchString%")
 	List<Bookentity> searchBydatepublish(@Param("searchString") String keyword);
 
-	Bookentity findBybookId(Long BookId);
-
+	Bookentity findByid(Long id);
+	
+	Bookentity findBybookId(String bookId);
+	
 	@Modifying
 	@Transactional
 	@Query(value = "UPDATE Book_entity b set b.quantity = b.quantity - 1 where b.book_id = :bookId", nativeQuery = true)
-	int UpdateQuantityBook(@Param("bookId") Long bookId);
+	int UpdateQuantityBook(@Param("bookId") String bookId);
 
 	@Modifying
 	@Transactional
 	@Query(value = "UPDATE Book_entity b set b.quantity = b.quantity + 1 where b.book_id = :bookId", nativeQuery = true)
-	int UpdateQuantityBook1(@Param("bookId") Long bookId);
+	int UpdateQuantityBook1(@Param("bookId") String bookId);
 
 }

@@ -22,7 +22,7 @@ public class Successfulentity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 	
-	private long bookId;
+	private String bookId;
 	
 	private String studentID;
 	

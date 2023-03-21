@@ -22,7 +22,9 @@ public class Bookentity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long bookId;
+	private long id;
+	
+	private String bookId;
 
 	@NotBlank(message = "Title should be valid")
 	@Size(max = 30)

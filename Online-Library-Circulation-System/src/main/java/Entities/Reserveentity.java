@@ -24,7 +24,7 @@ public class Reserveentity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	private long bookId;
+	private String bookId;
 
 	@Size(max = 30)
 	private String studentID;

@@ -23,7 +23,7 @@ public class ReceivedBook {
 
 	private String studentID;
 
-	private Long bookId;
+	private String bookId;
 
 	private String status;
 

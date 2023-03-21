@@ -51,7 +51,7 @@ public class MainController {
 
 	@Autowired
 	private ReceivedBookRepository receivedBookRepository;
-	
+
 	@Autowired
 	private ReturnEntityRepository returnEntityRepository;
 
@@ -108,7 +108,7 @@ public class MainController {
 
 		Reserveentity reserve = reserveEntityRepository.findByid(id);
 
-		Bookentity book = bookEntityRepository.findBybookId(reserve.getBookId());
+		Bookentity book = bookEntityRepository.findByid(reserve.getId());
 
 		Userentity student = userEntityRepository.findByStudentID(reserve.getStudentID());
 
@@ -142,7 +142,7 @@ public class MainController {
 
 		Approveentity approveentity = approveentityRepository.findByid(id);
 
-		Bookentity book = bookEntityRepository.findBybookId(approveentity.getBookId());
+		Bookentity book = bookEntityRepository.findByid(approveentity.getId());
 
 		Userentity student = userEntityRepository.findByStudentID(approveentity.getStudentID());
 
@@ -174,7 +174,7 @@ public class MainController {
 
 		ReceivedBook received = receivedBookRepository.findByid(id);
 
-		ReceivedBook book = receivedBookRepository.findBybookId(received.getBookId());
+		ReceivedBook book = receivedBookRepository.findByid(received.getId());
 
 		ReceivedBook receivedBook = receivedBookRepository.findByStudentID(received.getStudentID());
 
@@ -210,6 +210,7 @@ public class MainController {
 	// RESERVE THE BOOK //
 
 	@PostMapping("/reserve")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest,
 			BindingResult bindingResult) {
 

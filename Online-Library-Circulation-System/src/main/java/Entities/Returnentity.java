@@ -26,7 +26,7 @@ public class Returnentity {
 	@Size(max = 20)
 	private String studentID;
 
-	private Long bookId;
+	private String bookId;
 
 	private LocalDateTime dueDate;
 

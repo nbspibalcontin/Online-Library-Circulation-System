@@ -16,17 +16,19 @@ public interface UserEntityRepository extends JpaRepository<Userentity, Long> {
 
 	Boolean existsByEmail(String email);
 
+	Userentity findByid(Long id);
+
 	Userentity findByStudentID(String studentID);
 
 	Boolean existsByStudentID(String studentID);
 
 	@Modifying
 	@Transactional
-	@Query(value ="UPDATE User_entity u set u.books_borrowed = u.books_borrowed + 1 where u.studentID = :studentID",nativeQuery = true)
+	@Query(value = "UPDATE User_entity u set u.books_borrowed = u.books_borrowed + 1 where u.studentID = :studentID", nativeQuery = true)
 	int UpdateBorrowedStudentLimit(@Param("studentID") String studentID);
-	
+
 	@Modifying
 	@Transactional
-	@Query(value ="UPDATE User_entity u set u.books_borrowed = u.books_borrowed - 1 where u.studentID = :studentID",nativeQuery = true)
+	@Query(value = "UPDATE User_entity u set u.books_borrowed = u.books_borrowed - 1 where u.studentID = :studentID", nativeQuery = true)
 	int UpdateBorrowedStudentLimit1(@Param("studentID") String studentID);
 }
