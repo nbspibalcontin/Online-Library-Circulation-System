@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +26,10 @@ import Requests.SignUpRequest;
 import Services.AuthService;
 import Services.CreateServices.AddService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -71,25 +72,23 @@ public class AuthController {
 			}
 
 			if (userEntityRepository.existsByEmail(signUpRequest.getEmail())) {
-				return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already taken!"));
+				throw new CreationException("Email is already taken!");
 			}
 
 			if (userEntityRepository.existsByStudentID(signUpRequest.getStudentID())) {
-				return ResponseEntity.badRequest().body(new MessageResponse("Error: Student_ID is already taken!"));
+				throw new CreationException("Student ID is already taken! is already taken!");
 			}
 
 			MessageResponse messageResponse = addService.createUser(signUpRequest);
 
 			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
 
-		} catch (CreationException ex) {
-			return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
-		} catch (DataAccessException ex) {
+		} catch (CreationException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ErrorResponse(Collections.singletonList("Error creating user")));
-		} catch (RuntimeException ex) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ErrorResponse(Collections.singletonList(ex.getMessage())));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 

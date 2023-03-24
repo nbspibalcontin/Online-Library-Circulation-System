@@ -18,13 +18,15 @@ import Entities.Reserveentity;
 import Entities.Returnentity;
 import Entities.Successfulentity;
 import Entities.Userentity;
+import ExeptionHandler.NotFoundExceptionHandler.NotFoundException;
 import Reponses.MessageResponse;
 import Repositories.ReserveEntityRepository;
 import Services.RetrieveServices.FindAllService;
 import Services.RetrieveServices.FindByIdService;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class RetrieveController {
 
@@ -48,13 +50,17 @@ public class RetrieveController {
 			List<Successfulentity> data = findAllService.getAllSuccessfulTransaction();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -67,13 +73,17 @@ public class RetrieveController {
 			List<Bookentity> data = findAllService.getAllBooks();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -86,13 +96,17 @@ public class RetrieveController {
 			List<Approveentity> data = findAllService.getAllApprovalRequest();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -105,13 +119,16 @@ public class RetrieveController {
 			List<ReceivedBook> data = findAllService.getAllReceivedBooks();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -124,32 +141,40 @@ public class RetrieveController {
 			List<Returnentity> data = findAllService.getAllReturnedBooks();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
 	// LIST OF USERS //
 
 	@GetMapping("/userlist")
-	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> getAllUser() {
 		try {
 			List<Userentity> data = findAllService.getAllUsers();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -162,13 +187,17 @@ public class RetrieveController {
 			List<Reserveentity> data = findAllService.getAllReservation();
 
 			if (data.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("No data in database"));
+				throw new NotFoundException("No data in database");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new MessageResponse("An error occurred while processing your request"));
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -181,12 +210,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getAllSuccessTransactionById(@PathVariable Long id) {
 		try {
 			Successfulentity data = findByIdService.getSuccessfulTransactionById(id);
+			if (data == null) {
+				throw new NotFoundException("Successful Transaction with ID " + id + " not found.");
+			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
 
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -197,15 +232,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getAllBooksById(@PathVariable Long id) {
 		try {
 			Bookentity data = findByIdService.getBooksById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("Book with ID " + id + " not found.");
 			}
 
 			return new ResponseEntity<>(data, HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -216,14 +254,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getAllApproveById(@PathVariable Long id) {
 		try {
 			Approveentity data = findByIdService.getApprovalRequestById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("Approve request with ID " + id + " not found.");
 			}
+			
 			return new ResponseEntity<>(data, HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -234,14 +276,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getAllReceivedById(@PathVariable Long id) {
 		try {
 			ReceivedBook data = findByIdService.getReceivedBooksById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("Received book with ID " + id + " not found.");
 			}
+			
 			return new ResponseEntity<>(data, HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -252,14 +298,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getAllReturnedById(@PathVariable Long id) {
 		try {
 			Returnentity data = findByIdService.getReturnedBooksById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("Returned book with ID " + id + " not found.");
 			}
+			
 			return new ResponseEntity<>(data, HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -270,15 +320,18 @@ public class RetrieveController {
 	public ResponseEntity<?> getUserById(@PathVariable Long id) {
 		try {
 			Userentity data = findByIdService.getStudentById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("User with ID " + id + " not found.");
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -289,15 +342,17 @@ public class RetrieveController {
 	public ResponseEntity<?> getReserveById(@PathVariable Long id) {
 		try {
 			Reserveentity data = findByIdService.getReserveById(id);
-
 			if (data == null) {
-				return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the ID!"));
+				throw new NotFoundException("User with ID " + id + " not found.");
 			}
-
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-		} catch (EntityNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new MessageResponse("Successful transaction with ID " + id + " not found."));
+			
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 }

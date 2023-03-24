@@ -42,8 +42,10 @@ import Requests.UpdateRequest.SuccessfulTransactionUpdateRequest;
 import Requests.UpdateRequest.UserUpdateRequest;
 import Services.UpdateServices.UpdateService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class UpdateController {
 
@@ -102,6 +104,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -137,6 +143,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 
 	}
@@ -171,6 +181,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 	}
 
@@ -204,6 +218,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 
 	}
@@ -238,6 +256,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 
 	}
@@ -272,6 +294,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 
 	}
@@ -306,6 +332,10 @@ public class UpdateController {
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
 
 	}
