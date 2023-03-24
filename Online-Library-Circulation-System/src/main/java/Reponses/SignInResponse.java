@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class JwtResponse {
+public class SignInResponse {
 
 	private String token;
-	private long id;
+	private Long id;
 	private String studentID;
 	private String firstname;
 	private String lastname;

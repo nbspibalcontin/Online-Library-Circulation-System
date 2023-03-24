@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReserveRequest {
 
+	@NotBlank(message = "Filter should be valid")
 	private String bookId;
 
-	@NotBlank
+	@NotBlank(message = "Filter should be valid")
 	private String studentID;
 
 }

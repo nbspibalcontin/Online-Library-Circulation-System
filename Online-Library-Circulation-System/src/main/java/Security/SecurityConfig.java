@@ -41,10 +41,9 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf().disable().authorizeHttpRequests().requestMatchers("/api/auth/**", "/api/search/**")
 				.permitAll().and().authorizeHttpRequests()
-				.requestMatchers("/api/**", "/api/approve/**", "/api/received/**", "/api/return/**",
-						"/api/successful/**", "/api/book/**", "/api/book/**/**", "/api/user/**", "/api/user/**/**")
-				.authenticated().and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+				.requestMatchers("/api/**", "/api/**/**", "/api/user/**", "/api/user/**/**").authenticated().and()
+				.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}

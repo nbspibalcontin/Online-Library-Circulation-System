@@ -16,7 +16,7 @@ public interface ReceivedBookRepository extends JpaRepository<ReceivedBook, Long
 
 	ReceivedBook findByid(Long id);
 
-	ReceivedBook findByBookIdAndStudentID(String bookId, String studentID);
+	boolean existsByBookIdAndStudentID(String bookId, String studentID);
 
 	@Transactional
 	@Modifying

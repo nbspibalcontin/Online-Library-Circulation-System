@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,28 +25,20 @@ public class Reserveentity {
 
 	private String bookId;
 
-	@Size(max = 30)
 	private String studentID;
 
-	@Size(max = 30)
 	private String firstname;
 
-	@Size(max = 30)
 	private String lastname;
 
-	@Size(max = 30)
 	private String department;
 
-	@Size(max = 30)
 	private String course;
 
-	@Size(max = 30)
 	private String email;
 
-	@Size(max = 30)
 	private String status;
 
-	@Size(max = 30)
 	private String booktitle;
 
 	private LocalDateTime reserveAt;

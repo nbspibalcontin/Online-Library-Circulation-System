@@ -1,9 +1,11 @@
 package Controllers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +22,9 @@ import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
 import Entities.Userentity;
+import ExeptionHandler.ConflictException;
+import ExeptionHandler.CreationException;
+import ExeptionHandler.NotFoundExceptionHandler.NotFoundException;
 import Reponses.ErrorResponse;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
@@ -28,12 +33,15 @@ import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.UserEntityRepository;
+import Requests.BookRequest;
 import Requests.ReserveRequest;
-import Services.BookService;
-import Services.UserService;
+import Services.CreateServices.AddService;
+import Services.CreateServices.TransactionService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class MainController {
 
@@ -56,10 +64,10 @@ public class MainController {
 	private ReturnEntityRepository returnEntityRepository;
 
 	@Autowired
-	private BookService bookService;
+	private TransactionService transactionService;
 
 	@Autowired
-	private UserService userService;
+	private AddService addService;
 
 //	@PostMapping("/url")
 //	public ResponseEntity<?> create(@RequestBody Dto dto) {
@@ -77,54 +85,94 @@ public class MainController {
 
 	@PostMapping("/addbook")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> SaveBook(@Valid @RequestBody Bookentity bookEntity, BindingResult bindingResult) {
+	public ResponseEntity<?> SaveBook(@Valid @RequestBody BookRequest bookRequest, BindingResult bindingResult) {
 
-		if (bindingResult.hasErrors()) {
-			List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
-					.collect(Collectors.toList());
-			return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
+
+		try {
+
+			if (bindingResult.hasErrors()) {
+				List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
+						.collect(Collectors.toList());
+				return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			}
+
+			Optional<Bookentity> existingBook = bookEntityRepository.findBybookId(bookRequest.getBookId());
+			if (existingBook.isPresent()) {
+				throw new CreationException("Error: Book with ID " + bookRequest.getBookId() + " already exists");
+			}
+
+			MessageResponse messageResponse = addService.createBook(bookRequest);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (CreationException e) {
+			// Log the error or do something else with it
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			// Log the error or do something else with it
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
-
-		if (bookEntity == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Error: Can't be empty"));
-		}
-
-		return bookService.createBook(bookEntity);
-
 	}
 
 	// -----APPROVE THE RESERVATION OF BOOK----//
 
 	@PostMapping("/approve/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<?> ApproveTheRequest(@PathVariable Long id) {
+	public ResponseEntity<?> approveTheRequest(@PathVariable Long id) {
 
-		boolean bookExists = reserveEntityRepository.existsById(id);
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
 
-		if (!bookExists) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("ID doesn't exist! in reserve request"));
+		try {
+			// Find the reserve by ID
+			Reserveentity reserve = reserveEntityRepository.findByid(id);
+			if (reserve == null) {
+				throw new NotFoundException("Reserve request with ID " + id + " not found.");
+			}
+
+			// Find the book by book ID
+			Bookentity book = bookEntityRepository.findByBookId(reserve.getBookId());
+			if (book == null) {
+				throw new NotFoundException("Book not found with ID: " + reserve.getBookId());
+			}
+			// Find the student by student ID
+			Userentity student = userEntityRepository.findByStudentID(reserve.getStudentID());
+			if (student == null) {
+				throw new NotFoundException("Book not found with ID: " + reserve.getStudentID());
+			}
+
+			// Check if the book is available
+			if (book.getQuantity() == 0) {
+				throw new ConflictException("Currently, the book is not available.");
+			}
+
+			// Check if the student has already borrowed 3 books
+			if (student.getBooksBorrowed() >= 3) {
+				throw new ConflictException("Student has already borrowed 3 books");
+			}
+
+			// Approve the book
+			MessageResponse messageResponse = transactionService.approveReservedBook(id);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			// Log the error message
+			log.error("Error while approving book with id " + id + ": " + e.getMessage(), e);
+
+			// Return an error response
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An error occurred while approving the book: " + e.getMessage()));
 		}
-
-		Reserveentity reserve = reserveEntityRepository.findByid(id);
-
-		Bookentity book = bookEntityRepository.findByid(reserve.getId());
-
-		Userentity student = userEntityRepository.findByStudentID(reserve.getStudentID());
-
-		if (book.getQuantity() == 0) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("Currently, the book is not available."));
-		}
-
-		// check if the student has already borrowed 3 books
-		if (student.getBooksBorrowed() >= 3) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("Student has already borrowed 3 books"));
-		}
-
-		return bookService.ApproveTheBook(id);
-
 	}
 
 	// RECEIVED THE BOOK //
@@ -133,28 +181,43 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> ReceivedTheBook(@PathVariable Long id) {
 
-		boolean bookExists = approveentityRepository.existsById(id);
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
 
-		if (!bookExists) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("ID doesn't exist! in approved request"));
+		try {
+			boolean bookExists = approveentityRepository.existsById(id);
+			if (!bookExists) {
+				throw new NotFoundException("Approve request with ID " + id + " not found.");
+			}
+
+			Approveentity approveentity = approveentityRepository.findByid(id);
+			if (approveentity == null) {
+				throw new NotFoundException("Approve Request not found with ID: " + id);
+			}
+
+			Bookentity book = bookEntityRepository.findByBookId(approveentity.getBookId());
+			if (book == null) {
+				throw new NotFoundException("Book not found with ID: " + approveentity.getBookId());
+			}
+
+			Userentity student = userEntityRepository.findByStudentID(approveentity.getStudentID());
+			if (student == null) {
+				throw new NotFoundException("Student not found with ID: " + approveentity.getStudentID());
+			}
+
+			MessageResponse messageResponse = transactionService.receiveTheBook(id);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
 		}
-
-		Approveentity approveentity = approveentityRepository.findByid(id);
-
-		Bookentity book = bookEntityRepository.findByid(approveentity.getId());
-
-		Userentity student = userEntityRepository.findByStudentID(approveentity.getStudentID());
-
-		if (book == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
-		}
-
-		if (student == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
-		}
-
-		return bookService.ReceivedTheBook(id);
 
 	}
 
@@ -165,44 +228,71 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> ReturnTheBook(@PathVariable Long id) {
 
-		boolean bookExists = receivedBookRepository.existsById(id);
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
 
-		if (!bookExists) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("ID doesn't exist! in received request"));
+		try {
+			boolean bookExists = receivedBookRepository.existsById(id);
+			if (!bookExists) {
+				throw new NotFoundException("Received request with ID " + id + " not found.");
+			}
+
+			ReceivedBook received = receivedBookRepository.findByid(id);
+			if (received == null) {
+				throw new NotFoundException("Received Request not found with ID: " + id);
+			}
+
+			Bookentity book = bookEntityRepository.findByBookId(received.getBookId());
+			if (book == null) {
+				throw new NotFoundException("Book not found with ID: " + received.getBookId());
+			}
+
+			ReceivedBook receivedBook = receivedBookRepository.findByStudentID(received.getStudentID());
+			if (receivedBook == null) {
+				throw new NotFoundException("Student not found with ID: " + received.getStudentID());
+			}
+
+			MessageResponse messageResponse = transactionService.ReturnAndCalculateFines(id);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
-
-		ReceivedBook received = receivedBookRepository.findByid(id);
-
-		ReceivedBook book = receivedBookRepository.findByid(received.getId());
-
-		ReceivedBook receivedBook = receivedBookRepository.findByStudentID(received.getStudentID());
-
-		if (book == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
-		}
-
-		if (receivedBook == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
-		}
-
-		return bookService.ReturnAndCalculateFines(id);
-
 	}
 
 	// SUCCESSFUL TRANSACTION //
 
 	@PostMapping("/successful/{id}")
-	public ResponseEntity<?> SuccessfulTransaction(@PathVariable Long id) {
+	public ResponseEntity<?> successfulTransaction(@PathVariable Long id) {
 
-		boolean bookExists = returnEntityRepository.existsById(id);
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
 
-		if (!bookExists) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("ID doesn't exist! in received request"));
+		try {
+			boolean bookExists = returnEntityRepository.existsById(id);
+			if (!bookExists) {
+				throw new NotFoundException("Return request with ID " + id + " not found.");
+			}
+
+			MessageResponse messageResponse = transactionService.successfulTransaction(id);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An error occurred: " + e.getMessage()));
 		}
-
-		return bookService.SuccessfulTransaction(id);
 	}
 
 	// ------------------------USER---------------------------//
@@ -214,53 +304,70 @@ public class MainController {
 	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest,
 			BindingResult bindingResult) {
 
-		Bookentity book = bookEntityRepository.findBybookId(reserveRequest.getBookId());
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
 
-		Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
+		try {
+			if (bindingResult.hasErrors()) {
+				List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
+						.collect(Collectors.toList());
+				return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			}
 
-		boolean exists = approveentityRepository.existsByBookIdAndStudentID(reserveRequest.getBookId(),
-				reserveRequest.getStudentID());
+			Bookentity book = bookEntityRepository.findByBookId(reserveRequest.getBookId());
+			if (book == null) {
+				throw new NotFoundException("Book not found with ID: " + reserveRequest.getBookId());
+			}
 
-		if (exists) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("You already request the book just wait for admin approval!"));
+			boolean receivedexists = receivedBookRepository.existsByBookIdAndStudentID(reserveRequest.getBookId(),
+					reserveRequest.getStudentID());
+			if (receivedexists) {
+				throw new ConflictException("You have already received the book.");
+			}
+
+			Userentity student = userEntityRepository.findByStudentID(reserveRequest.getStudentID());
+			if (student == null) {
+				throw new NotFoundException("Student not found with ID: " + reserveRequest.getStudentID());
+			}
+
+			boolean exists = approveentityRepository.existsByBookIdAndStudentID(reserveRequest.getBookId(),
+					reserveRequest.getStudentID());
+			if (exists) {
+				throw new ConflictException(
+						"This book is already the approve. Please wait go to library to received the book.");
+			}
+
+			if (book.getQuantity() == 0) {
+				throw new ConflictException("The book is currently not available.");
+			}
+
+			// check if the student has already borrowed 3 books
+			if (student.getBooksBorrowed() >= 3) {
+				throw new ConflictException("Student has already borrowed 3 books");
+			}
+
+			// Check if the book is already reserved by the same student
+			Reserveentity existingReservation = reserveEntityRepository
+					.findByBookIdAndStudentID(reserveRequest.getBookId(), reserveRequest.getStudentID());
+			if (existingReservation != null) {
+				throw new ConflictException("You already reserved this book");
+			}
+
+			MessageResponse messageResponse = transactionService.ReserveBook(reserveRequest);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (ConflictException e) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse(e.getMessage()));
 		}
-
-		if (book == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the book ID!"));
-		}
-
-		if (student == null) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Cannot find the Student ID!"));
-		}
-
-		if (book.getQuantity() == 0) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("Currently, the book is not available."));
-		}
-
-		if (bindingResult.hasErrors()) {
-			List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
-					.collect(Collectors.toList());
-			return ResponseEntity.badRequest().body(new ErrorResponse(errors));
-		}
-
-		// check if the student has already borrowed 3 books
-		if (student.getBooksBorrowed() >= 3) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("Student has already borrowed 3 books"));
-		}
-
-		// Check if the book is already reserved by the same student
-		Reserveentity existingReservation = reserveEntityRepository.findByBookIdAndStudentID(reserveRequest.getBookId(),
-				reserveRequest.getStudentID());
-		if (existingReservation != null) {
-			// Book is already reserved by the same student, return a 409 Conflict response
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(new MessageResponse("You already reserved this book"));
-		}
-
-		return userService.ReserveBook(reserveRequest);
 
 	}
+
 }

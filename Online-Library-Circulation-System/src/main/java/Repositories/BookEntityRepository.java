@@ -1,6 +1,7 @@
 package Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,7 +27,9 @@ public interface BookEntityRepository extends JpaRepository<Bookentity, Long> {
 
 	Bookentity findByid(Long id);
 	
-	Bookentity findBybookId(String bookId);
+	Bookentity findByBookId(String bookId);
+	
+	Optional<Bookentity> findBybookId(String bookId);
 	
 	@Modifying
 	@Transactional

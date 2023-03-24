@@ -21,23 +21,25 @@ public class Successfulentity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-	
+
 	private String bookId;
-	
+
 	private String studentID;
-	
+
 	private String firstname;
-	
+
 	private String lastname;
-	
+
 	private String department;
-	
+
 	private String course;
 
 	private String email;
-	
+
 	private LocalDateTime dueDate;
-	
+
 	private LocalDateTime returnDate;
+
+	private double fines;
 
 }
