@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -14,6 +15,7 @@ import Entities.Successfulentity;
 import Entities.Userentity;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
@@ -44,6 +46,9 @@ public class FindAllService {
 	@Autowired
 	private UserEntityRepository userEntityRepository;
 
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
+
 	// ------------------------FindAll---------------------------//
 
 	// GET ALL SUCCESSFUL TRANSACTION //
@@ -63,6 +68,17 @@ public class FindAllService {
 	public List<Bookentity> getAllBooks() {
 		try {
 			return bookEntityRepository.findAll();
+		} catch (Exception e) {
+			// Log the error or do something else with it
+			throw new RuntimeException("An error occurred while fetching books: " + e.getMessage(), e);
+		}
+	}
+
+	// GET ALL BOOK LOSTS //
+
+	public List<BookLostentity> getAllBookLosts() {
+		try {
+			return bookLostentityRepository.findAll();
 		} catch (Exception e) {
 			// Log the error or do something else with it
 			throw new RuntimeException("An error occurred while fetching books: " + e.getMessage(), e);

@@ -69,6 +69,30 @@ public class DeleteController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
 	}
+	
+	// Delete Book Lost
+
+	@DeleteMapping("/deletebooklost/{id}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<?> deleteBooklost(@PathVariable Long id) {
+
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
+
+		try {
+
+			MessageResponse messageResponse = deleteService.DeleteBookLost(id);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			// Log the error or do something else with it
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+		}
+	}
 
 	// Delete User
 

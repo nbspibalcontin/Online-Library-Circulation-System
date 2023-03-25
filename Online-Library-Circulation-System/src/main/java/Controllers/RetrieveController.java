@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -20,7 +21,6 @@ import Entities.Successfulentity;
 import Entities.Userentity;
 import ExeptionHandler.NotFoundExceptionHandler.NotFoundException;
 import Reponses.MessageResponse;
-import Repositories.ReserveEntityRepository;
 import Services.RetrieveServices.FindAllService;
 import Services.RetrieveServices.FindByIdService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequestMapping("/api")
 public class RetrieveController {
-
-	@Autowired
-	ReserveEntityRepository reserveEntityRepository;
 
 	@Autowired
 	private FindAllService findAllService;
@@ -77,7 +74,30 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
+		}
+	}
+
+	// LIST OF BOOK LOST //
+
+	@GetMapping("/booklostlist")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<?> getAllBooklosts() {
+		try {
+			List<BookLostentity> data = findAllService.getAllBookLosts();
+
+			if (data.isEmpty()) {
+				throw new NotFoundException("No data in database");
+			}
+
+			return ResponseEntity.status(HttpStatus.OK).body(data);
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -100,7 +120,7 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -145,7 +165,7 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -168,7 +188,7 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -191,7 +211,7 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -237,7 +257,29 @@ public class RetrieveController {
 			}
 
 			return new ResponseEntity<>(data, HttpStatus.OK);
-			
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
+		}
+	}
+	
+	// GET BOOK LOST BY ID //
+
+	@GetMapping("/booklostlist/{id}")
+	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
+	public ResponseEntity<?> getAllBooklostById(@PathVariable Long id) {
+		try {
+			BookLostentity data = findByIdService.getBooklostById(id);
+			if (data == null) {
+				throw new NotFoundException("Book lost with ID " + id + " not found.");
+			}
+
+			return new ResponseEntity<>(data, HttpStatus.OK);
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -257,9 +299,9 @@ public class RetrieveController {
 			if (data == null) {
 				throw new NotFoundException("Approve request with ID " + id + " not found.");
 			}
-			
+
 			return new ResponseEntity<>(data, HttpStatus.OK);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -279,9 +321,9 @@ public class RetrieveController {
 			if (data == null) {
 				throw new NotFoundException("Received book with ID " + id + " not found.");
 			}
-			
+
 			return new ResponseEntity<>(data, HttpStatus.OK);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -301,9 +343,9 @@ public class RetrieveController {
 			if (data == null) {
 				throw new NotFoundException("Returned book with ID " + id + " not found.");
 			}
-			
+
 			return new ResponseEntity<>(data, HttpStatus.OK);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -325,7 +367,7 @@ public class RetrieveController {
 			}
 
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {
@@ -346,7 +388,7 @@ public class RetrieveController {
 				throw new NotFoundException("User with ID " + id + " not found.");
 			}
 			return ResponseEntity.status(HttpStatus.OK).body(data);
-			
+
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
 		} catch (Exception e) {

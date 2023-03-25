@@ -33,6 +33,7 @@ import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.UserEntityRepository;
+import Requests.BookLostRequest;
 import Requests.BookRequest;
 import Requests.ReserveRequest;
 import Services.CreateServices.AddService;
@@ -292,6 +293,44 @@ public class MainController {
 			log.error("An error occurred: {}", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(new MessageResponse("An error occurred: " + e.getMessage()));
+		}
+	}
+
+	// -----APPROVE THE RESERVATION OF BOOK----//
+
+	@PostMapping("/booklost")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<?> BookLost(@Valid @RequestBody BookLostRequest bookLostRequest) {
+
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
+
+		try {
+			// Find the book by book ID
+			Bookentity book = bookEntityRepository.findByBookId(bookLostRequest.getBookId());
+			if (book == null) {
+				throw new NotFoundException("Book not found with ID: " + bookLostRequest.getBookId());
+			}
+			// Find the student by student ID
+			Userentity student = userEntityRepository.findByStudentID(bookLostRequest.getStudentID());
+			if (student == null) {
+				throw new NotFoundException("Book not found with ID: " + bookLostRequest.getStudentID());
+			}
+
+			// Approve the book
+			MessageResponse messageResponse = transactionService.BookLost(bookLostRequest);
+
+			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			// Return an error response
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An error occurred while approving the book: " + e.getMessage()));
 		}
 	}
 

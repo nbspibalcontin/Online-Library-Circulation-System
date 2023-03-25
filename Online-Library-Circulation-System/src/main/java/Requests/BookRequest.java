@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BookRequest {
 
-	@NotBlank(message = "Firstname should be valid")
+	@NotBlank(message = "BookId should be valid")
 	@Size(min = 2, max = 20, message = "BookId must be between {min} and {max} characters")
 	private String bookId;
 
-	@NotBlank(message = "Firstname should be valid")
+	@NotBlank(message = "Title should be valid")
 	@Size(min = 2, max = 20, message = "Title must be between {min} and {max} characters")
 	private String title;
 
-	@NotBlank(message = "Firstname should be valid")
+	@NotBlank(message = "Author should be valid")
 	@Size(min = 2, max = 20, message = "Author must be between {min} and {max} characters")
 	private String author;
 
-	@NotBlank(message = "Firstname should be valid")
+	@NotBlank(message = "Subject should be valid")
 	@Size(min = 2, max = 1000, message = "Subject must be between {min} and {max} characters")
 	private String subject;
 

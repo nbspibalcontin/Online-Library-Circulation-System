@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -12,6 +13,7 @@ import Entities.Successfulentity;
 import Entities.Userentity;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
@@ -41,6 +43,9 @@ public class FindByIdService {
 
 	@Autowired
 	private ReserveEntityRepository reserveEntityRepository;
+	
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
 
 	// ------------------------FindBy---------------------------//
 
@@ -88,6 +93,17 @@ public class FindByIdService {
 			throw new RuntimeException("An error occurred while fetching books: " + e.getMessage(), e);
 		}
 	}
+	
+	// GET BOOK LOSTS BY ID //
+
+	public BookLostentity getBooklostById(Long id) {
+		try {
+			return bookLostentityRepository.findByid(id);
+		} catch (Exception e) {
+			// Log the error or do something else with it
+			throw new RuntimeException("An error occurred while fetching books: " + e.getMessage(), e);
+		}
+	}
 
 	// GET RETURNED BOOKS BY ID //
 
@@ -111,7 +127,7 @@ public class FindByIdService {
 		}
 	}
 
-	// GET STUDENT BY ID //
+	// GET RESERVE BY ID //
 
 	public Reserveentity getReserveById(Long id) {
 		try {

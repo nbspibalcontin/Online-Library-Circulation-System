@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -28,12 +29,14 @@ import Reponses.ErrorResponse;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.SuccessfulEntityRepository;
 import Repositories.UserEntityRepository;
 import Requests.UpdateRequest.ApproveUpdateRequest;
+import Requests.UpdateRequest.BookLostUpdateRequest;
 import Requests.UpdateRequest.BookUpdateRequest;
 import Requests.UpdateRequest.ReceivedUpdateRequest;
 import Requests.UpdateRequest.ReserveUpdateRequest;
@@ -69,6 +72,9 @@ public class UpdateController {
 
 	@Autowired
 	private SuccessfulEntityRepository successfulEntityRepository;
+
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
 
 	@Autowired
 	private UpdateService updateService;
@@ -139,6 +145,46 @@ public class UpdateController {
 			}
 
 			MessageResponse messageResponse = updateService.UpdateReserve(id, updateRequest);
+
+			return ResponseEntity.ok().headers(headers).body(messageResponse);
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
+		}
+
+	}
+
+	// UPDATE BOOK LOST //
+
+	@PutMapping("/updatebooklost/{id}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<?> UpdateTheBooklost(@PathVariable Long id,
+			@Valid @RequestBody BookLostUpdateRequest updateRequest, BindingResult bindingResult) {
+
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
+
+		try {
+			// Check if reservation exists
+			BookLostentity bookLost = bookLostentityRepository.findByid(id);
+
+			if (bookLost == null) {
+				throw new NotFoundException("Book lost not found with ID: " + id);
+			}
+
+			// Check for validation errors
+			if (bindingResult.hasErrors()) {
+				List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
+						.collect(Collectors.toList());
+				return ResponseEntity.badRequest().body(new ErrorResponse(errors));
+			}
+
+			MessageResponse messageResponse = updateService.updateBooklost(id, updateRequest);
 
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
@@ -35,6 +36,9 @@ public class DeleteService {
 
 	@Autowired
 	private SuccessfulEntityRepository successfulEntityRepository;
+	
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
 
 	// Delete Book
 
@@ -53,6 +57,16 @@ public class DeleteService {
 		reserveEntityRepository.deleteById(id);
 
 		return new MessageResponse("Reservation request successfully deleted.");
+
+	}
+	
+	// Delete Book Lost
+
+	public MessageResponse DeleteBookLost(Long id) {
+
+		bookLostentityRepository.deleteById(id);
+
+		return new MessageResponse("Book Lost successfully deleted.");
 
 	}
 

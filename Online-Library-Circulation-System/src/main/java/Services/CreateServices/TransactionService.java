@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -23,11 +24,13 @@ import ExeptionHandler.NotFoundExceptionHandler.NotFoundException;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.SuccessfulEntityRepository;
 import Repositories.UserEntityRepository;
+import Requests.BookLostRequest;
 import Requests.ReserveRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,12 +59,15 @@ public class TransactionService {
 	@Autowired
 	private SuccessfulEntityRepository successfulEntityRepository;
 
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
+
 	private static final double DAILY_FINE_AMOUNT = 30.50;
 
 	// APPROVE THE BOOK //
 
-	public MessageResponse approveReservedBook(Long id){
-		
+	public MessageResponse approveReservedBook(Long id) {
+
 		Reserveentity reserve = reserveEntityRepository.findByid(id);
 		if (reserve == null) {
 			throw new NotFoundException("Reserve not found with id " + id);
@@ -288,6 +294,42 @@ public class TransactionService {
 			reserveEntityRepository.save(reserveentity);
 
 			return new MessageResponse("Book reservation successfully!");
+		} catch (Exception e) {
+			// Log the error or do something else with it
+			log.error("An error occurred: {}", e.getMessage());
+			return new MessageResponse("An error occurred: " + e.getMessage());
+		}
+	}
+
+	// RESERVE THE BOOK //
+
+	public MessageResponse BookLost(BookLostRequest bookLostRequest) {
+		try {
+			Bookentity book = bookEntityRepository.findByBookId(bookLostRequest.getBookId());
+			if (book == null) {
+				throw new NotFoundException("No book found with id: " + bookLostRequest.getBookId());
+			}
+
+			Userentity student = userEntityRepository.findByStudentID(bookLostRequest.getStudentID());
+			if (student == null) {
+				throw new NotFoundException("Student with ID " + bookLostRequest.getStudentID() + " not found.");
+			}
+
+			// Save the Book Lost //
+			BookLostentity bookLostentity = new BookLostentity();
+			bookLostentity.setBookAmount(bookLostRequest.getBookAmount());
+			bookLostentity.setBookId(bookLostRequest.getBookId());
+			bookLostentity.setCourse(bookLostRequest.getCourse());
+			bookLostentity.setDepartment(bookLostRequest.getDepartment());
+			bookLostentity.setEmail(bookLostRequest.getEmail());
+			bookLostentity.setFirstname(bookLostRequest.getFirstname());
+			bookLostentity.setLastname(bookLostRequest.getLastname());
+			bookLostentity.setStatus(bookLostRequest.getStatus());
+			bookLostentity.setStudentID(bookLostRequest.getStudentID());
+
+			bookLostentityRepository.save(bookLostentity);
+
+			return new MessageResponse("Book lost successfully save!");
 		} catch (Exception e) {
 			// Log the error or do something else with it
 			log.error("An error occurred: {}", e.getMessage());

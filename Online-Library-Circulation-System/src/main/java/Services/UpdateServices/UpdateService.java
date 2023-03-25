@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import Entities.Approveentity;
+import Entities.BookLostentity;
 import Entities.Bookentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
@@ -17,12 +18,14 @@ import ExeptionHandler.NotFoundExceptionHandler.NotFoundException;
 import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
+import Repositories.BookLostentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
 import Repositories.SuccessfulEntityRepository;
 import Repositories.UserEntityRepository;
 import Requests.UpdateRequest.ApproveUpdateRequest;
+import Requests.UpdateRequest.BookLostUpdateRequest;
 import Requests.UpdateRequest.BookUpdateRequest;
 import Requests.UpdateRequest.ReceivedUpdateRequest;
 import Requests.UpdateRequest.ReserveUpdateRequest;
@@ -53,6 +56,9 @@ public class UpdateService {
 
 	@Autowired
 	private SuccessfulEntityRepository successfulEntityRepository;
+
+	@Autowired
+	private BookLostentityRepository bookLostentityRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -86,6 +92,43 @@ public class UpdateService {
 			bookEntityRepository.save(bookentity);
 
 			return new MessageResponse("Book successfully updated.");
+
+		} catch (DataIntegrityViolationException e) {
+			throw new IllegalArgumentException("Data integrity violation while saving book entity", e);
+		}
+	}
+
+	// UPDATE BOOK LOST//
+
+	public MessageResponse updateBooklost(Long id, BookLostUpdateRequest updateRequest) {
+
+		BookLostentity bookLostentity = bookLostentityRepository.findByid(id);
+		if (bookLostentity == null) {
+			throw new NotFoundException("Book lost not found with id " + id);
+		}
+
+		if (updateRequest.getBookId() == null || updateRequest.getBookAmount() == 0 || updateRequest.getCourse() == null
+				|| updateRequest.getDepartment() == null || updateRequest.getEmail() == null
+				|| updateRequest.getFirstname() == null || updateRequest.getLastname() == null
+				|| updateRequest.getStatus() == null || updateRequest.getStudentID() == null) {
+			throw new InvalidDataException("Update request contains null fields");
+		}
+
+		bookLostentity.setId(id);
+		bookLostentity.setBookAmount(updateRequest.getBookAmount());
+		bookLostentity.setBookId(updateRequest.getBookId());
+		bookLostentity.setCourse(updateRequest.getCourse());
+		bookLostentity.setDepartment(updateRequest.getDepartment());
+		bookLostentity.setEmail(updateRequest.getEmail());
+		bookLostentity.setFirstname(updateRequest.getFirstname());
+		bookLostentity.setLastname(updateRequest.getLastname());
+		bookLostentity.setStatus(updateRequest.getStatus());
+		bookLostentity.setStudentID(updateRequest.getStudentID());
+
+		try {
+			bookLostentityRepository.save(bookLostentity);
+
+			return new MessageResponse("Book lost successfully updated.");
 
 		} catch (DataIntegrityViolationException e) {
 			throw new IllegalArgumentException("Data integrity violation while saving book entity", e);
