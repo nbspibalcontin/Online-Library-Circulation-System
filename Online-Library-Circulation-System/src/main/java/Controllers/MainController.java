@@ -100,7 +100,6 @@ public class MainController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json");
 		headers.add("Authorization", "Bearer token");
-
 		try {
 
 			if (bindingResult.hasErrors()) {
