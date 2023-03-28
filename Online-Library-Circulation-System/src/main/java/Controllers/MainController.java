@@ -11,11 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import Entities.Approveentity;
 import Entities.Bookentity;
@@ -36,6 +39,7 @@ import Repositories.UserEntityRepository;
 import Requests.BookLostRequest;
 import Requests.BookRequest;
 import Requests.ReserveRequest;
+import Services.CreateServices.AddImage;
 import Services.CreateServices.AddService;
 import Services.CreateServices.TransactionService;
 import jakarta.validation.Valid;
@@ -43,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
+@CrossOrigin
 @RequestMapping("/api")
 public class MainController {
 
@@ -69,6 +74,9 @@ public class MainController {
 
 	@Autowired
 	private AddService addService;
+
+	@Autowired
+	private AddImage addImage;
 
 //	@PostMapping("/url")
 //	public ResponseEntity<?> create(@RequestBody Dto dto) {
@@ -407,6 +415,18 @@ public class MainController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse(e.getMessage()));
 		}
 
+	}
+
+	@PostMapping("/image")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	public ResponseEntity<?> UploadImage(@RequestParam("image") MultipartFile file, Long id) {
+		try {
+
+			MessageResponse upload = addImage.uploadImage(file, id);
+			return new ResponseEntity<>(upload, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 }

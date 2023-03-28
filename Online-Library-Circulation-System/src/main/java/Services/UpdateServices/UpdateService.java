@@ -1,13 +1,18 @@
 package Services.UpdateServices;
 
+import java.io.ByteArrayOutputStream;
+import java.util.zip.Deflater;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import Entities.Approveentity;
 import Entities.BookLostentity;
 import Entities.Bookentity;
+import Entities.Imageentity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
 import Entities.Returnentity;
@@ -19,6 +24,7 @@ import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
 import Repositories.BookLostentityRepository;
+import Repositories.ImageentityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
@@ -59,6 +65,9 @@ public class UpdateService {
 
 	@Autowired
 	private BookLostentityRepository bookLostentityRepository;
+
+	@Autowired
+	private ImageentityRepository imageentityRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -340,6 +349,51 @@ public class UpdateService {
 		try {
 			userEntityRepository.save(userentity);
 			return new MessageResponse("User successfully updated.");
+		} catch (DataIntegrityViolationException e) {
+			throw new IllegalArgumentException("Data integrity violation while saving user entity", e);
+		}
+
+	}
+
+	// UPDATE IMAGE //
+
+	public MessageResponse Updateimage(MultipartFile file, Long id) throws Exception {
+
+		Userentity userentity = userEntityRepository.findByid(id);
+		if (userentity == null) {
+			throw new NotFoundException("User not found with id " + id);
+		}
+
+		byte[] imageData = file.getBytes();
+		if (imageData == null || imageData.length == 0) {
+			throw new IllegalArgumentException("Image data cannot be null or empty");
+		}
+
+		byte[] compressedImageData;
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			Deflater compresser = new Deflater();
+			compresser.setInput(imageData);
+			compresser.finish();
+			byte[] buffer = new byte[1024];
+			while (!compresser.finished()) {
+				int count = compresser.deflate(buffer);
+				bos.write(buffer, 0, count);
+			}
+			compressedImageData = bos.toByteArray();
+		} catch (Exception ex) {
+			throw new Exception("Failed to compress image data", ex);
+		}
+
+		Imageentity imageentity = new Imageentity();
+		imageentity.setId(id);
+		imageentity.setName(file.getOriginalFilename());
+		imageentity.setType(file.getContentType());
+		imageentity.setImageData(compressedImageData);
+		imageentity.setUser(userentity);
+
+		try {
+			imageentityRepository.save(imageentity);
+			return new MessageResponse("Image successfully updated.");
 		} catch (DataIntegrityViolationException e) {
 			throw new IllegalArgumentException("Data integrity violation while saving user entity", e);
 		}

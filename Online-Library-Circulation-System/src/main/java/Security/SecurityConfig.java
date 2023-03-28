@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import Services.AuthEntryPointJwt;
@@ -39,11 +40,13 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		return http.csrf().disable().authorizeHttpRequests().requestMatchers("/","/api/auth/**", "/api/search/**")
-				.permitAll().and().authorizeHttpRequests()
-				.requestMatchers("/api/**", "/api/**/**").authenticated().and()
-				.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and().sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+		return http.csrf().disable().authorizeHttpRequests()
+				.requestMatchers("/","/**", "/login", "/api/auth/**", "/api/search/**").permitAll().and()
+				.authorizeHttpRequests().requestMatchers("/api/**", "/api/**/**").authenticated().and().formLogin()
+				.loginPage("/login").loginProcessingUrl("/login").defaultSuccessUrl("/dashboard").failureUrl("/login?error").permitAll().and().logout()
+				.logoutSuccessUrl("/login").permitAll().and().exceptionHandling()
+				.authenticationEntryPoint(unauthorizedHandler).accessDeniedHandler(accessDeniedHandler()).and()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
@@ -64,6 +67,11 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
+	}
+
+	@Bean
+	public AccessDeniedHandler accessDeniedHandler() {
+		return new CustomAccessDeniedHandler();
 	}
 
 }

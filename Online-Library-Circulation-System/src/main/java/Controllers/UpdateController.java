@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import Entities.Approveentity;
 import Entities.BookLostentity;
@@ -374,6 +376,31 @@ public class UpdateController {
 			}
 
 			MessageResponse messageResponse = updateService.UpdateUser(id, updateRequest);
+
+			return ResponseEntity.ok().headers(headers).body(messageResponse);
+		} catch (NotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
+		} catch (Exception e) {
+			log.error("An error occurred: {}", e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new MessageResponse("An unexpected error occurred: " + e.getMessage()));
+		}
+
+	}
+
+	// UPDATE USER //
+
+	@PutMapping("/updateimage")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	public ResponseEntity<?> UpdateTheImage(@RequestParam("image") MultipartFile file, Long id) {
+
+		// Custom HttpHeader
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json");
+		headers.add("Authorization", "Bearer token");
+
+		try {
+			MessageResponse messageResponse = updateService.Updateimage(file, id);
 
 			return ResponseEntity.ok().headers(headers).body(messageResponse);
 		} catch (NotFoundException e) {
