@@ -32,8 +32,8 @@ public class AuthService {
 			if (authentication.isAuthenticated()) {
 				String jwt = jwtService.generateToken(signInRequest.getEmail());
 				final Userentity user = userEntityFindByEmail.findByEmail(signInRequest.getEmail());
-				return new SignInResponse(jwt, user.getId(), user.getStudentID(), user.getFirstname(),
-						user.getLastname(), user.getDepartment(), user.getCourse(), user.getEmail(), user.getRoles());
+				return new SignInResponse(jwt, user.getId(), user.getStudentID(), user.getFirstname(),user.getRoles(),
+						user.getLastname(), user.getDepartment(), user.getCourse(), user.getEmail(), user.getBooksBorrowed());
 			} else {
 				throw new UsernameNotFoundException("Invalid user request");
 			}

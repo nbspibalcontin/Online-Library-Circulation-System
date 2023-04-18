@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import Entities.Approveentity;
 import Entities.BookLostentity;
 import Entities.Bookentity;
+import Entities.NotificationEntity;
 import Entities.ReceivedBook;
 import Entities.Reserveentity;
 import Entities.Returnentity;
@@ -25,6 +26,7 @@ import Reponses.MessageResponse;
 import Repositories.ApproveentityRepository;
 import Repositories.BookEntityRepository;
 import Repositories.BookLostentityRepository;
+import Repositories.NotificationEntityRepository;
 import Repositories.ReceivedBookRepository;
 import Repositories.ReserveEntityRepository;
 import Repositories.ReturnEntityRepository;
@@ -55,6 +57,9 @@ public class TransactionService {
 
 	@Autowired
 	private ReturnEntityRepository returnEntityRepository;
+
+	@Autowired
+	private NotificationEntityRepository notificationEntityRepository;
 
 	@Autowired
 	private SuccessfulEntityRepository successfulEntityRepository;
@@ -94,11 +99,17 @@ public class TransactionService {
 		approveentity.setBookId(book.getBookId());
 		approveentity.setStatus("Approved");
 
+		NotificationEntity notificationEntity = new NotificationEntity();
+		notificationEntity.setStatus("1");
+		notificationEntity.setText("Your Request has been approved!");
+		notificationEntity.setUser(student);
+
 		try {
 			bookEntityRepository.UpdateQuantityBook(book.getBookId());
 			userEntityRepository.UpdateBorrowedStudentLimit(student.getStudentID());
 			reserveEntityRepository.deleteById(reserve.getId());
 			approveentityRepository.save(approveentity);
+			notificationEntityRepository.save(notificationEntity);
 			return new MessageResponse("Book approved successfully!");
 		} catch (DataAccessException e) {
 			log.error("Error while approving book with id " + id + ": " + e.getMessage(), e);

@@ -43,7 +43,4 @@ public class SignUpRequest {
 	@Size(min = 8, message = "Password must be at least 8 characters long")
 	private String password;
 
-	@NotBlank(message = "Role should be valid")
-	@Size(min = 2, max = 10, message = "Role must be between {min} and {max} characters")
-	private String roles;
 }

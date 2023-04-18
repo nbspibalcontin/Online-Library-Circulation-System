@@ -18,5 +18,6 @@ public class SignInResponse {
 	private String course;
 	private String email;
 	private String roles;
+	private int booksBorrowed;
 
 }

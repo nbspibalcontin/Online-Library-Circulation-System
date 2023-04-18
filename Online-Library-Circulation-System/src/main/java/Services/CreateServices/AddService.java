@@ -56,7 +56,6 @@ public class AddService {
 			userentity.setDepartment(signUpRequest.getDepartment());
 			userentity.setEmail(signUpRequest.getEmail());
 			userentity.setLastname(signUpRequest.getLastname());
-			userentity.setRoles(signUpRequest.getRoles());
 			userentity.setStudentID(signUpRequest.getStudentID());
 			userentity.setFirstname(signUpRequest.getFirstname());
 			userentity.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));

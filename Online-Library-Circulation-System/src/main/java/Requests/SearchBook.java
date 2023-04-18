@@ -14,6 +14,6 @@ public class SearchBook {
 	private String filter;
 
 	@NotBlank(message = "Keyword should be Blank")
-	private String keyword;
+	private String keywords;
 
 }

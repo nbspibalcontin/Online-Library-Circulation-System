@@ -1,10 +1,10 @@
 package Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +15,7 @@ import Services.DeleteServices.DeleteService;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Slf4j
 @RequestMapping("/api")
 public class DeleteController {
@@ -27,17 +28,10 @@ public class DeleteController {
 	@DeleteMapping("/deletebook/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteBook(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteBook(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -51,17 +45,10 @@ public class DeleteController {
 	@DeleteMapping("/deletereserve/{id}")
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_USER')")
 	public ResponseEntity<?> deleteReserve(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteReserve(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -69,23 +56,16 @@ public class DeleteController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
 		}
 	}
-	
+
 	// Delete Book Lost
 
 	@DeleteMapping("/deletebooklost/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteBooklost(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteBookLost(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -99,17 +79,10 @@ public class DeleteController {
 	@DeleteMapping("/deleteuser/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteUser(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -123,17 +96,10 @@ public class DeleteController {
 	@DeleteMapping("/deleteapprove/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteApprove(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteApprove(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -147,17 +113,10 @@ public class DeleteController {
 	@DeleteMapping("/deletereceived/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteReceived(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteReceived(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -171,17 +130,10 @@ public class DeleteController {
 	@DeleteMapping("/deletereturn/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteReturn(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteReturn(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());
@@ -195,17 +147,10 @@ public class DeleteController {
 	@DeleteMapping("/deletesuccess/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteSuccessTransaction(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
-
 			MessageResponse messageResponse = deleteService.DeleteSucecssTransaction(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (Exception e) {
 			log.error("An error occurred: {}", e.getMessage());

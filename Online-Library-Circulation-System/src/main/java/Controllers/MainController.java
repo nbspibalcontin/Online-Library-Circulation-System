@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@CrossOrigin
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api")
 public class MainController {
 
@@ -95,13 +94,7 @@ public class MainController {
 	@PostMapping("/addbook")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> SaveBook(@Valid @RequestBody BookRequest bookRequest, BindingResult bindingResult) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
 		try {
-
 			if (bindingResult.hasErrors()) {
 				List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
 						.collect(Collectors.toList());
@@ -115,7 +108,7 @@ public class MainController {
 
 			MessageResponse messageResponse = addService.createBook(bookRequest);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (CreationException e) {
 			// Log the error or do something else with it
@@ -132,12 +125,6 @@ public class MainController {
 	@PostMapping("/approve/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> approveTheRequest(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			// Find the reserve by ID
 			Reserveentity reserve = reserveEntityRepository.findByid(id);
@@ -169,7 +156,7 @@ public class MainController {
 			// Approve the book
 			MessageResponse messageResponse = transactionService.approveReservedBook(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -188,12 +175,6 @@ public class MainController {
 	@PostMapping("/received/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> ReceivedTheBook(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			boolean bookExists = approveentityRepository.existsById(id);
 			if (!bookExists) {
@@ -217,7 +198,7 @@ public class MainController {
 
 			MessageResponse messageResponse = transactionService.receiveTheBook(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -235,12 +216,6 @@ public class MainController {
 	@PostMapping("/return/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> ReturnTheBook(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			boolean bookExists = receivedBookRepository.existsById(id);
 			if (!bookExists) {
@@ -264,7 +239,7 @@ public class MainController {
 
 			MessageResponse messageResponse = transactionService.ReturnAndCalculateFines(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -278,12 +253,6 @@ public class MainController {
 
 	@PostMapping("/successful/{id}")
 	public ResponseEntity<?> successfulTransaction(@PathVariable Long id) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			boolean bookExists = returnEntityRepository.existsById(id);
 			if (!bookExists) {
@@ -292,7 +261,7 @@ public class MainController {
 
 			MessageResponse messageResponse = transactionService.successfulTransaction(id);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -308,12 +277,6 @@ public class MainController {
 	@PostMapping("/booklost")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<?> BookLost(@Valid @RequestBody BookLostRequest bookLostRequest) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			// Find the book by book ID
 			Bookentity book = bookEntityRepository.findByBookId(bookLostRequest.getBookId());
@@ -329,7 +292,7 @@ public class MainController {
 			// Approve the book
 			MessageResponse messageResponse = transactionService.BookLost(bookLostRequest);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -349,12 +312,6 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> ReserveBook(@Valid @RequestBody ReserveRequest reserveRequest,
 			BindingResult bindingResult) {
-
-		// Custom HttpHeader
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json");
-		headers.add("Authorization", "Bearer token");
-
 		try {
 			if (bindingResult.hasErrors()) {
 				List<String> errors = bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage)
@@ -382,7 +339,7 @@ public class MainController {
 					reserveRequest.getStudentID());
 			if (exists) {
 				throw new ConflictException(
-						"This book is already the approve. Please wait go to library to received the book.");
+						"This book is already approved. Please go to library to received the book.");
 			}
 
 			if (book.getQuantity() == 0) {
@@ -403,7 +360,7 @@ public class MainController {
 
 			MessageResponse messageResponse = transactionService.ReserveBook(reserveRequest);
 
-			return ResponseEntity.status(HttpStatus.OK).headers(headers).body(messageResponse);
+			return ResponseEntity.status(HttpStatus.OK).body(messageResponse);
 
 		} catch (NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
@@ -420,7 +377,6 @@ public class MainController {
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> UploadImage(@RequestParam("image") MultipartFile file, Long id) {
 		try {
-
 			MessageResponse upload = addImage.uploadImage(file, id);
 			return new ResponseEntity<>(upload, HttpStatus.OK);
 		} catch (Exception e) {

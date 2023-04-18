@@ -44,5 +44,10 @@ public class Userentity {
 	
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Imageentity> children = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NotificationEntity> noti = new ArrayList<>();
+    
+    
 
 }

@@ -41,12 +41,13 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf().disable().authorizeHttpRequests()
-				.requestMatchers("/","/**", "/login", "/api/auth/**", "/api/search/**").permitAll().and()
-				.authorizeHttpRequests().requestMatchers("/api/**", "/api/**/**").authenticated().and().formLogin()
-				.loginPage("/login").loginProcessingUrl("/login").defaultSuccessUrl("/dashboard").failureUrl("/login?error").permitAll().and().logout()
-				.logoutSuccessUrl("/login").permitAll().and().exceptionHandling()
-				.authenticationEntryPoint(unauthorizedHandler).accessDeniedHandler(accessDeniedHandler()).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+				.requestMatchers("/", "/**", "/noti/*", "/noti/update/*", "/login", "/api/auth/**", "/api/search/**")
+				.permitAll().and().authorizeHttpRequests().requestMatchers("/api/**", "/api/**/**").authenticated()
+				.and().formLogin().loginPage("/login").loginProcessingUrl("/login").defaultSuccessUrl("/dashboard")
+				.failureUrl("/login?error").permitAll().and().logout().logoutSuccessUrl("/login").permitAll().and()
+				.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+				.accessDeniedHandler(accessDeniedHandler()).and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}

@@ -24,22 +24,22 @@ public class SearchService {
 		if (searchBook.getFilter() == null) {
 			throw new IllegalArgumentException("Search filter cannot be null");
 		}
-		if (searchBook.getKeyword() == null) {
+		if (searchBook.getKeywords() == null) {
 			throw new IllegalArgumentException("Search keyword cannot be null");
 		}
 
 		switch (searchBook.getFilter()) {
 		case "title":
-			return bookEntityRepository.searchBytitle(searchBook.getKeyword());
+			return bookEntityRepository.searchBytitle(searchBook.getKeywords());
 
 		case "author":
-			return bookEntityRepository.searchByauthor(searchBook.getKeyword());
+			return bookEntityRepository.searchByauthor(searchBook.getKeywords());
 
 		case "subject":
-			return bookEntityRepository.searchBysubject(searchBook.getKeyword());
+			return bookEntityRepository.searchBysubject(searchBook.getKeywords());
 
 		case "datepublish":
-			return bookEntityRepository.searchBydatepublish(searchBook.getKeyword());
+			return bookEntityRepository.searchBydatepublish(searchBook.getKeywords());
 
 		default:
 			throw new IllegalArgumentException("Invalid search criteria: " + searchBook.getFilter());
